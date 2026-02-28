@@ -178,14 +178,28 @@ export const RoadmapService = {
 
             const docRef = await addDoc(cardsRef, cardData);
 
+            const {
+                assignedTo,
+                assignedToName,
+                assignedToPhoto,
+                estimatedHours,
+                completedAt,
+                dueDate,
+                ...restCardData
+            } = cardData;
+
             return {
                 id: docRef.id,
                 orgId,
-                ...cardData,
+                ...restCardData,
+                ...(assignedTo ? { assignedTo } : {}),
+                ...(assignedToName ? { assignedToName } : {}),
+                ...(assignedToPhoto ? { assignedToPhoto } : {}),
+                ...(estimatedHours ? { estimatedHours } : {}),
                 dueDate: data.dueDate,
                 createdAt: now,
                 updatedAt: now,
-            };
+            } as RoadmapCard;
         } catch (error) {
             console.error('Error creating card:', error);
             throw error;

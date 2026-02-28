@@ -104,7 +104,7 @@ export const MemberService = {
                 displayName: data.displayName || null,
                 photoURL: data.photoURL || null,
                 role: data.role,
-                status: 'active',
+                status: 'active' as const,
                 joinedAt: Timestamp.fromDate(now),
                 invitedBy: data.invitedBy,
             };

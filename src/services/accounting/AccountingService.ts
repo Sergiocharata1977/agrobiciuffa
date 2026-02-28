@@ -57,13 +57,16 @@ export const AccountService = {
 
             const docRef = await addDoc(accountsRef, accountData);
 
+            const { cuentaPadreId, ...restAccountData } = accountData;
+
             return {
                 id: docRef.id,
                 orgId,
-                ...accountData,
+                ...restAccountData,
+                ...(cuentaPadreId ? { cuentaPadreId } : {}),
                 createdAt: now,
                 updatedAt: now,
-            };
+            } as Account;
         } catch (error) {
             console.error('Error creating account:', error);
             throw error;
@@ -351,13 +354,16 @@ export const ProductService = {
 
             const docRef = await addDoc(productsRef, productData);
 
+            const { cuentaStockId, ...restProductData } = productData;
+
             return {
                 id: docRef.id,
                 orgId,
-                ...productData,
+                ...restProductData,
+                ...(cuentaStockId ? { cuentaStockId } : {}),
                 createdAt: now,
                 updatedAt: now,
-            };
+            } as Product;
         } catch (error) {
             console.error('Error creating product:', error);
             throw error;

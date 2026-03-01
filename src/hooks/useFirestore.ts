@@ -12,7 +12,7 @@ import {
     DocumentData,
     Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 
 interface UseFirestoreOptions {
     realtime?: boolean;
@@ -60,7 +60,7 @@ export function useFirestoreCollection<T extends DocumentData>(
         setLoading(true);
         setError(null);
 
-        const collectionRef = collection(db, path);
+        const collectionRef = collection(getDbClient(), path);
         const queryConstraints = [...constraints];
 
         if (limitCount) {

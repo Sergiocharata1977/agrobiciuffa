@@ -13,7 +13,7 @@ import {
     Timestamp,
     writeBatch,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 import { RoadmapCard, CardStatus, CreateCardData, UpdateCardData } from '@/types/roadmap';
 
 const ORGANIZATIONS_COLLECTION = 'organizations';
@@ -25,7 +25,7 @@ export const RoadmapService = {
      */
     async getAll(orgId: string): Promise<RoadmapCard[]> {
         try {
-            const cardsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
+            const cardsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
             const q = query(cardsRef, orderBy('order', 'asc'));
             const snapshot = await getDocs(q);
 
@@ -63,7 +63,7 @@ export const RoadmapService = {
      */
     async getByStatus(orgId: string, status: CardStatus): Promise<RoadmapCard[]> {
         try {
-            const cardsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
+            const cardsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
             const q = query(
                 cardsRef,
                 where('status', '==', status),
@@ -105,7 +105,7 @@ export const RoadmapService = {
      */
     async getById(orgId: string, cardId: string): Promise<RoadmapCard | null> {
         try {
-            const cardRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
+            const cardRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
             const snapshot = await getDoc(cardRef);
 
             if (!snapshot.exists()) {
@@ -149,7 +149,7 @@ export const RoadmapService = {
         creatorName: string
     ): Promise<RoadmapCard> {
         try {
-            const cardsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
+            const cardsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`);
             const now = new Date();
 
             // Get max order for the target status
@@ -215,7 +215,7 @@ export const RoadmapService = {
         data: UpdateCardData
     ): Promise<void> {
         try {
-            const cardRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
+            const cardRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
 
             const updateData: Record<string, unknown> = {
                 ...data,
@@ -247,7 +247,7 @@ export const RoadmapService = {
         newOrder: number
     ): Promise<void> {
         try {
-            const cardRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
+            const cardRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
 
             const updateData: Record<string, unknown> = {
                 status: newStatus,
@@ -275,11 +275,11 @@ export const RoadmapService = {
         cardOrders: { id: string; order: number }[]
     ): Promise<void> {
         try {
-            const batch = writeBatch(db);
+            const batch = writeBatch(getDbClient());
             const now = Timestamp.fromDate(new Date());
 
             for (const { id, order } of cardOrders) {
-                const cardRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, id);
+                const cardRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, id);
                 batch.update(cardRef, { order, updatedAt: now });
             }
 
@@ -295,7 +295,7 @@ export const RoadmapService = {
      */
     async delete(orgId: string, cardId: string): Promise<void> {
         try {
-            const cardRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
+            const cardRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/${CARDS_SUBCOLLECTION}`, cardId);
             await deleteDoc(cardRef);
         } catch (error) {
             console.error('Error deleting card:', error);

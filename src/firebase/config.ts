@@ -4,6 +4,10 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+import type { FirebaseStorage } from 'firebase/storage';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -25,18 +29,72 @@ if (
     console.error('Make sure to set NEXT_PUBLIC_FIREBASE_* environment variables');
 }
 
-// Initialize Firebase (singleton pattern)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+let cachedApp: FirebaseApp | null = null;
+let cachedAuth: Auth | null = null;
+let cachedDb: Firestore | null = null;
+let cachedStorage: FirebaseStorage | null = null;
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+function hasRequiredClientConfig(): boolean {
+    return Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId);
+}
+
+export function getFirebaseApp(): FirebaseApp | null {
+    if (cachedApp) return cachedApp;
+
+    // Prevent initialization during server-side rendering (SSR/SSG)
+    if (typeof window === 'undefined') return null;
+
+    // Check if configuration is just placeholder strings
+    if (firebaseConfig.apiKey === 'your-api-key' || firebaseConfig.apiKey === 'undefined') {
+        return null;
+    }
+
+    if (!hasRequiredClientConfig()) return null;
+
+    cachedApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    return cachedApp;
+}
+
+export function getAuthClient(): Auth {
+    if (cachedAuth) return cachedAuth;
+    const app = getFirebaseApp();
+    if (!app) {
+        if (typeof window === 'undefined') return {} as Auth;
+        throw new Error('Firebase client is not configured');
+    }
+    cachedAuth = getAuth(app);
+    return cachedAuth;
+}
+
+export function getDbClient(): Firestore {
+    if (cachedDb) return cachedDb;
+    const app = getFirebaseApp();
+    if (!app) {
+        if (typeof window === 'undefined') return {} as Firestore;
+        throw new Error('Firebase client is not configured');
+    }
+    cachedDb = getFirestore(app);
+    return cachedDb;
+}
+
+export function getStorageClient(): FirebaseStorage {
+    if (cachedStorage) return cachedStorage;
+    const app = getFirebaseApp();
+    if (!app) {
+        if (typeof window === 'undefined') return {} as FirebaseStorage;
+        throw new Error('Firebase client is not configured');
+    }
+    cachedStorage = getStorage(app);
+    return cachedStorage;
+}
 
 // Analytics only on client side
 export const analytics =
     typeof window !== 'undefined'
-        ? isSupported().then(yes => (yes ? getAnalytics(app) : null))
+        ? isSupported().then(yes => {
+            const app = getFirebaseApp();
+            return yes && app ? getAnalytics(app) : null;
+        })
         : null;
 
-export default app;
+export default getFirebaseApp;

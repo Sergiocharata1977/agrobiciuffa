@@ -13,7 +13,7 @@ import {
     Timestamp,
     runTransaction,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 import {
     Account,
     JournalEntry,
@@ -37,7 +37,7 @@ export const AccountService = {
      */
     async create(orgId: string, data: CreateAccountData): Promise<Account> {
         try {
-            const accountsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`);
+            const accountsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`);
             const now = new Date();
 
             const accountData = {
@@ -78,7 +78,7 @@ export const AccountService = {
      */
     async getAll(orgId: string): Promise<Account[]> {
         try {
-            const accountsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`);
+            const accountsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`);
             const q = query(
                 accountsRef,
                 where('active', '==', true),
@@ -116,7 +116,7 @@ export const AccountService = {
      */
     async update(orgId: string, accountId: string, data: Partial<Account>): Promise<void> {
         try {
-            const accountRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`, accountId);
+            const accountRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`, accountId);
             await updateDoc(accountRef, {
                 ...data,
                 updatedAt: Timestamp.fromDate(new Date()),
@@ -132,7 +132,7 @@ export const AccountService = {
      */
     async deactivate(orgId: string, accountId: string): Promise<void> {
         try {
-            const accountRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`, accountId);
+            const accountRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/accounts`, accountId);
             await updateDoc(accountRef, {
                 active: false,
                 updatedAt: Timestamp.fromDate(new Date()),
@@ -158,9 +158,9 @@ export const JournalEntryService = {
         createdBy: string
     ): Promise<JournalEntry> {
         try {
-            const result = await runTransaction(db, async (transaction) => {
+            const result = await runTransaction(getDbClient(), async (transaction) => {
                 // Get last entry number
-                const entriesRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`);
+                const entriesRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`);
                 const q = query(entriesRef, orderBy('numero', 'desc'), limit(1));
                 const snapshot = await getDocs(q);
 
@@ -179,7 +179,7 @@ export const JournalEntryService = {
                 }
 
                 const now = new Date();
-                const newDocRef = doc(collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`));
+                const newDocRef = doc(collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`));
 
                 const entryData = {
                     numero: nextNumber,
@@ -221,7 +221,7 @@ export const JournalEntryService = {
      */
     async getAll(orgId: string, limitCount = 50): Promise<JournalEntry[]> {
         try {
-            const entriesRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`);
+            const entriesRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`);
             const q = query(
                 entriesRef,
                 orderBy('fecha', 'desc'),
@@ -261,7 +261,7 @@ export const JournalEntryService = {
      */
     async getById(orgId: string, entryId: string): Promise<JournalEntry | null> {
         try {
-            const entryRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
+            const entryRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
             const snapshot = await getDoc(entryRef);
 
             if (!snapshot.exists()) return null;
@@ -295,7 +295,7 @@ export const JournalEntryService = {
      */
     async post(orgId: string, entryId: string): Promise<void> {
         try {
-            const entryRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
+            const entryRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
             await updateDoc(entryRef, {
                 estado: 'contabilizado',
                 updatedAt: Timestamp.fromDate(new Date()),
@@ -311,7 +311,7 @@ export const JournalEntryService = {
      */
     async void(orgId: string, entryId: string): Promise<void> {
         try {
-            const entryRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
+            const entryRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/journal_entries`, entryId);
             await updateDoc(entryRef, {
                 estado: 'anulado',
                 updatedAt: Timestamp.fromDate(new Date()),
@@ -333,7 +333,7 @@ export const ProductService = {
      */
     async create(orgId: string, data: CreateProductData): Promise<Product> {
         try {
-            const productsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/products`);
+            const productsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/products`);
             const now = new Date();
 
             const productData = {
@@ -375,7 +375,7 @@ export const ProductService = {
      */
     async getAll(orgId: string): Promise<Product[]> {
         try {
-            const productsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/products`);
+            const productsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/products`);
             const q = query(
                 productsRef,
                 where('active', '==', true),
@@ -414,7 +414,7 @@ export const ProductService = {
      */
     async update(orgId: string, productId: string, data: Partial<Product>): Promise<void> {
         try {
-            const productRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/products`, productId);
+            const productRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/products`, productId);
             await updateDoc(productRef, {
                 ...data,
                 updatedAt: Timestamp.fromDate(new Date()),

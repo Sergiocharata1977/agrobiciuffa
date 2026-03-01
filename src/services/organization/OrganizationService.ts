@@ -11,7 +11,7 @@ import {
     where,
     Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 import { Organization, OrganizationSettings, Member, MemberRole } from '@/types/organization';
 
 const COLLECTION = 'organizations';
@@ -28,7 +28,7 @@ export const OrganizationService = {
         creatorName?: string
     ): Promise<Organization> {
         try {
-            const orgRef = doc(collection(db, COLLECTION));
+            const orgRef = doc(collection(getDbClient(), COLLECTION));
             const now = new Date();
 
             const orgData = {
@@ -51,7 +51,7 @@ export const OrganizationService = {
             await setDoc(orgRef, orgData);
 
             // Create owner member
-            const memberRef = doc(db, `${COLLECTION}/${orgRef.id}/members`, creatorId);
+            const memberRef = doc(getDbClient(), `${COLLECTION}/${orgRef.id}/members`, creatorId);
             await setDoc(memberRef, {
                 userId: creatorId,
                 email: creatorEmail,
@@ -81,7 +81,7 @@ export const OrganizationService = {
      */
     async getById(orgId: string): Promise<Organization | null> {
         try {
-            const docRef = doc(db, COLLECTION, orgId);
+            const docRef = doc(getDbClient(), COLLECTION, orgId);
             const snapshot = await getDoc(docRef);
 
             if (!snapshot.exists()) {
@@ -114,7 +114,7 @@ export const OrganizationService = {
         data: Partial<Organization>
     ): Promise<void> {
         try {
-            const docRef = doc(db, COLLECTION, orgId);
+            const docRef = doc(getDbClient(), COLLECTION, orgId);
 
             // Remove fields that shouldn't be updated directly
             const { id, createdAt, createdBy, ...updateData } = data;
@@ -136,7 +136,7 @@ export const OrganizationService = {
     async delete(orgId: string): Promise<void> {
         try {
             // TODO: Implement cascade delete for all subcollections
-            const docRef = doc(db, COLLECTION, orgId);
+            const docRef = doc(getDbClient(), COLLECTION, orgId);
             await deleteDoc(docRef);
         } catch (error) {
             console.error('Error deleting organization:', error);
@@ -155,10 +155,10 @@ export const OrganizationService = {
             // Query all organizations and check membership
             // Note: This is not optimal for large datasets
             // Consider using a user-organizations subcollection for better performance
-            const orgsSnapshot = await getDocs(collection(db, COLLECTION));
+            const orgsSnapshot = await getDocs(collection(getDbClient(), COLLECTION));
 
             for (const orgDoc of orgsSnapshot.docs) {
-                const memberRef = doc(db, `${COLLECTION}/${orgDoc.id}/members`, userId);
+                const memberRef = doc(getDbClient(), `${COLLECTION}/${orgDoc.id}/members`, userId);
                 const memberSnapshot = await getDoc(memberRef);
 
                 if (memberSnapshot.exists()) {

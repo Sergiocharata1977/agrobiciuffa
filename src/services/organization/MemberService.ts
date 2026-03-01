@@ -13,7 +13,7 @@ import {
     orderBy,
     Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 import { Member, MemberRole, Invitation, InvitationStatus } from '@/types/organization';
 
 const ORGANIZATIONS_COLLECTION = 'organizations';
@@ -24,7 +24,7 @@ export const MemberService = {
      */
     async getMembers(orgId: string): Promise<Member[]> {
         try {
-            const membersRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/members`);
+            const membersRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/members`);
             const q = query(membersRef, orderBy('joinedAt', 'desc'));
             const snapshot = await getDocs(q);
 
@@ -54,7 +54,7 @@ export const MemberService = {
      */
     async getMember(orgId: string, userId: string): Promise<Member | null> {
         try {
-            const memberRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
+            const memberRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
             const snapshot = await getDoc(memberRef);
 
             if (!snapshot.exists()) {
@@ -95,7 +95,7 @@ export const MemberService = {
         }
     ): Promise<Member> {
         try {
-            const memberRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
+            const memberRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
             const now = new Date();
 
             const memberData = {
@@ -132,7 +132,7 @@ export const MemberService = {
         newRole: MemberRole
     ): Promise<void> {
         try {
-            const memberRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
+            const memberRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
             await updateDoc(memberRef, { role: newRole });
         } catch (error) {
             console.error('Error updating member role:', error);
@@ -145,7 +145,7 @@ export const MemberService = {
      */
     async removeMember(orgId: string, userId: string): Promise<void> {
         try {
-            const memberRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
+            const memberRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/members`, userId);
             await deleteDoc(memberRef);
         } catch (error) {
             console.error('Error removing member:', error);
@@ -170,7 +170,7 @@ export const MemberService = {
         }
     ): Promise<Invitation> {
         try {
-            const invitationsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`);
+            const invitationsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`);
             const now = new Date();
             const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -204,7 +204,7 @@ export const MemberService = {
      */
     async getInvitations(orgId: string): Promise<Invitation[]> {
         try {
-            const invitationsRef = collection(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`);
+            const invitationsRef = collection(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`);
             const q = query(
                 invitationsRef,
                 where('status', '==', 'pending'),
@@ -247,7 +247,7 @@ export const MemberService = {
     ): Promise<void> {
         try {
             // Get invitation
-            const invitationRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`, invitationId);
+            const invitationRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`, invitationId);
             const invitationSnap = await getDoc(invitationRef);
 
             if (!invitationSnap.exists()) {
@@ -287,7 +287,7 @@ export const MemberService = {
      */
     async cancelInvitation(orgId: string, invitationId: string): Promise<void> {
         try {
-            const invitationRef = doc(db, `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`, invitationId);
+            const invitationRef = doc(getDbClient(), `${ORGANIZATIONS_COLLECTION}/${orgId}/invitations`, invitationId);
             await deleteDoc(invitationRef);
         } catch (error) {
             console.error('Error canceling invitation:', error);

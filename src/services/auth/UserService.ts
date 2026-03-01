@@ -6,7 +6,7 @@ import {
     updateDoc,
     Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getDbClient } from '@/firebase/config';
 import { User, UserProfile } from '@/types/auth';
 
 const COLLECTION = 'users';
@@ -17,7 +17,7 @@ export const UserService = {
      */
     async getById(userId: string): Promise<User | null> {
         try {
-            const docRef = doc(db, COLLECTION, userId);
+            const docRef = doc(getDbClient(), COLLECTION, userId);
             const snapshot = await getDoc(docRef);
 
             if (!snapshot.exists()) {
@@ -52,7 +52,7 @@ export const UserService = {
         }
     ): Promise<User> {
         try {
-            const docRef = doc(db, COLLECTION, userId);
+            const docRef = doc(getDbClient(), COLLECTION, userId);
             const now = new Date();
 
             const userData = {
@@ -85,7 +85,7 @@ export const UserService = {
         data: Partial<UserProfile>
     ): Promise<void> {
         try {
-            const docRef = doc(db, COLLECTION, userId);
+            const docRef = doc(getDbClient(), COLLECTION, userId);
 
             await updateDoc(docRef, {
                 ...data,
@@ -105,7 +105,7 @@ export const UserService = {
         organizationId: string
     ): Promise<void> {
         try {
-            const docRef = doc(db, COLLECTION, userId);
+            const docRef = doc(getDbClient(), COLLECTION, userId);
 
             await updateDoc(docRef, {
                 currentOrganizationId: organizationId,
@@ -122,7 +122,7 @@ export const UserService = {
      */
     async exists(userId: string): Promise<boolean> {
         try {
-            const docRef = doc(db, COLLECTION, userId);
+            const docRef = doc(getDbClient(), COLLECTION, userId);
             const snapshot = await getDoc(docRef);
             return snapshot.exists();
         } catch (error) {

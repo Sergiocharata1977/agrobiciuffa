@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, FirebaseUser } from '@/firebase/auth';
-import { auth } from '@/firebase/config';
+import { getAuthClient } from '@/firebase/config';
 import { UserService } from '@/services/auth/UserService';
 import { User } from '@/types/auth';
 
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const logout = async () => {
         try {
             const { signOut } = await import('firebase/auth');
-            await signOut(auth);
+            await signOut(getAuthClient());
 
             // Clear auth cookie
             if (typeof document !== 'undefined') {

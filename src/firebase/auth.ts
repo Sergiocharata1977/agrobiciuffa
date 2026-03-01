@@ -10,11 +10,11 @@ import {
     User as FirebaseUser,
     updateProfile as firebaseUpdateProfile,
 } from 'firebase/auth';
-import { auth } from './config';
+import { getAuthClient } from './config';
 
 // Sign in with email and password
 export const signIn = async (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    return signInWithEmailAndPassword(getAuthClient(), email, password);
 };
 
 // Sign up with email and password
@@ -24,7 +24,7 @@ export const signUp = async (
     displayName?: string
 ) => {
     const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        getAuthClient(),
         email,
         password
     );
@@ -43,17 +43,17 @@ export const signInWithGoogle = async () => {
     provider.setCustomParameters({
         prompt: 'select_account',
     });
-    return signInWithPopup(auth, provider);
+    return signInWithPopup(getAuthClient(), provider);
 };
 
 // Sign out
 export const signOut = async () => {
-    return firebaseSignOut(auth);
+    return firebaseSignOut(getAuthClient());
 };
 
 // Send password reset email
 export const resetPassword = async (email: string) => {
-    return sendPasswordResetEmail(auth, email);
+    return sendPasswordResetEmail(getAuthClient(), email);
 };
 
 // Update user profile
@@ -66,12 +66,12 @@ export const updateProfile = async (
 
 // Auth state change listener
 export const onAuthChange = (callback: (user: FirebaseUser | null) => void) => {
-    return onAuthStateChanged(auth, callback);
+    return onAuthStateChanged(getAuthClient(), callback);
 };
 
 // Get current user
 export const getCurrentUser = (): FirebaseUser | null => {
-    return auth.currentUser;
+    return getAuthClient().currentUser;
 };
 
 // Type export

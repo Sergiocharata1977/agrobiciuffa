@@ -13,6 +13,12 @@ import {
     BadgePercent,
     Droplet
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const ChatWidget = dynamic(
+    () => import('@/components/ChatWidget').then((mod) => mod.ChatWidget),
+    { ssr: false }
+);
 
 export default function HomePage() {
     return (
@@ -314,6 +320,7 @@ export default function HomePage() {
                     <p className="font-light text-xs text-zinc-600">&copy; {new Date().getFullYear()} Agro Biciuffa SRL. Todos los derechos reservados.</p>
                 </div>
             </footer>
+            <ChatWidget />
         </main>
     );
 }

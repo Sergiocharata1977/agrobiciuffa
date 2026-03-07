@@ -1,45 +1,36 @@
-import * as admin from 'firebase-admin';
 import Groq from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Inicializar Firebase Admin si no está inicializado
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
-}
-
-const db = admin.firestore();
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 let groqInstance: Groq | null = null;
-const getGroqClient = () => {
+
+function getGroqClient(): Groq {
     if (!groqInstance) {
         if (!process.env.GROQ_API_KEY) {
             console.warn('GROQ_API_KEY is missing');
         }
+
         groqInstance = new Groq({
             apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build',
         });
     }
-    return groqInstance;
-};
 
-// System prompt para Agrobiciufa
+    return groqInstance;
+}
+
 const SYSTEM_PROMPT = `Eres el asistente virtual experto en maquinaria Case IH de Agro Biciuffa SRL.
 
-TU OBJETIVO: Atender a visitantes de la web, responder consultas sobre tractores, pulverizadoras, cosechadoras, repuestos y servicio técnico oficial, y tomar datos de contacto.
+TU OBJETIVO: Atender a visitantes de la web, responder consultas sobre tractores, pulverizadoras, cosechadoras, repuestos y servicio tecnico oficial, y tomar datos de contacto.
 
-TONO: Amigable, profesional, con conocimiento del campo argentino. Usa emojis con moderación (1-2 por respuesta).
+TONO: Amigable, profesional, con conocimiento del campo argentino. Usa emojis con moderacion (1-2 por respuesta).
 
 REGLAS:
 1. Explica los modelos y servicios de forma clara.
-2. Respuestas CONCISAS (máximo 3-4 párrafos).
-3. Si te piden precios concretos o cotizaciones, indica que es necesario que un asesor comercial se contacte, y pide nombre, teléfono y localidad.
-4. NO inventes características de la maquinaria si no estás seguro. Deriva la consulta.`;
+2. Respuestas CONCISAS (maximo 3-4 parrafos).
+3. Si te piden precios concretos o cotizaciones, indica que es necesario que un asesor comercial se contacte, y pide nombre, telefono y localidad.
+4. No inventes caracteristicas de la maquinaria si no estas seguro. Deriva la consulta.`;
 
 export async function POST(request: NextRequest) {
     try {
@@ -48,15 +39,15 @@ export async function POST(request: NextRequest) {
 
         if (!message || !sessionId) {
             return NextResponse.json(
-                { success: false, error: 'Faltan parámetros requeridos' },
+                { success: false, error: 'Faltan parametros requeridos' },
                 { status: 400 }
             );
         }
 
         const groqMessages = [
             { role: 'system' as const, content: SYSTEM_PROMPT },
-            ...chatHistory.map((msg: any) => ({
-                role: msg.role as 'user' | 'assistant',
+            ...chatHistory.map((msg: { role: 'user' | 'assistant'; content: string }) => ({
+                role: msg.role,
                 content: msg.content,
             })),
             { role: 'user' as const, content: message },
@@ -73,21 +64,22 @@ export async function POST(request: NextRequest) {
 
         const reply =
             completion.choices[0]?.message?.content ||
-            'Lo siento, no pude procesar tu mensaje. ¿Podrías intentarlo de nuevo?';
-
-        // Opcional: Guardar en Firestore el lead / la conversación si se requiere.
-        // Por el momento, la integración responde al frontend de manera básica.
+            'Lo siento, no pude procesar tu mensaje. Podrias intentarlo de nuevo?';
 
         return NextResponse.json({
             success: true,
             reply,
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error in chat API:', error);
+
+        const message =
+            error instanceof Error ? error.message : 'Error al procesar el mensaje';
+
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Error al procesar el mensaje',
+                error: message,
                 reply:
                     'Lo siento, hubo un error. Por favor, intenta de nuevo en unos momentos.',
             },

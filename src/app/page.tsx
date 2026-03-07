@@ -14,6 +14,7 @@ import {
     Droplet
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { FormSolicitud } from '@/components/forms/FormSolicitud';
 
 const ChatWidget = dynamic(
     () => import('@/components/ChatWidget').then((mod) => mod.ChatWidget),
@@ -98,9 +99,9 @@ export default function HomePage() {
                             </div>
                             <div className="p-6">
                                 <p className="text-zinc-600 mb-6 font-light leading-relaxed">Fuerza inteligente y eficiencia comprobada para los trabajos más exigentes del campo.</p>
-                                <button className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
+                                <Link href="#contacto" className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
                                     Ver Modelos <ChevronRight className="w-4 h-4" />
-                                </button>
+                                </Link>
                             </div>
                         </div>
 
@@ -113,9 +114,9 @@ export default function HomePage() {
                             </div>
                             <div className="p-6">
                                 <p className="text-zinc-600 mb-6 font-light leading-relaxed">Precisión milimétrica y tecnología de aplicación líder en el mercado para proteger tus cultivos.</p>
-                                <button className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
+                                <Link href="#contacto" className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
                                     Ver Modelos <ChevronRight className="w-4 h-4" />
-                                </button>
+                                </Link>
                             </div>
                         </div>
 
@@ -128,9 +129,9 @@ export default function HomePage() {
                             </div>
                             <div className="p-6">
                                 <p className="text-zinc-600 mb-6 font-light leading-relaxed">La protección oficial Case IH. Máximo rendimiento y vida útil prolongada para tu motor.</p>
-                                <button className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
+                                <Link href="#contacto" className="font-semibold text-red-600 text-sm flex items-center gap-1 group-hover:text-red-700 transition-colors">
                                     Conocer Más <ChevronRight className="w-4 h-4" />
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -226,9 +227,9 @@ export default function HomePage() {
                             <p className="text-zinc-300 mb-8 max-w-xl font-light leading-relaxed text-sm">
                                 Opciones de financiación adaptadas al flujo de caja del productor argentino. Trabajamos con los principales bancos y ofrecemos créditos directos Case IH.
                             </p>
-                            <button className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-all text-sm flex items-center gap-2">
+                            <Link href="#contacto" className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-all text-sm flex items-center gap-2 inline-flex">
                                 Consultar Financiación <ChevronRight className="w-4 h-4" />
-                            </button>
+                            </Link>
                         </div>
                         <div className="lg:w-1/3 self-stretch flex items-center justify-center p-10 relative overflow-hidden hidden md:flex">
                             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
@@ -278,32 +279,10 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {/* Formulario minimalista */}
+                        {/* Formulario de solicitudes */}
                         <div className="bg-white p-8 md:p-10 rounded-2xl border border-slate-200 shadow-sm">
-                            <h3 className="text-xl font-bold tracking-tight mb-8 text-zinc-900">Envianos un mensaje</h3>
-                            <form className="space-y-5">
-                                <div>
-                                    <label className="block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider">Nombre completo</label>
-                                    <input type="text" className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400" placeholder="Tu nombre" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-5">
-                                    <div>
-                                        <label className="block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider">Teléfono</label>
-                                        <input type="text" className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400" placeholder="Tu número" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider">Email</label>
-                                        <input type="email" className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400" placeholder="tu@email.com" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider">Consulta</label>
-                                    <textarea rows={4} className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400 resize-none" placeholder="¿En qué podemos asesorarte?" />
-                                </div>
-                                <button type="button" className="w-full py-3 mt-2 bg-red-600 hover:bg-black text-white font-bold rounded-lg text-sm transition-colors shadow-sm uppercase tracking-wide">
-                                    Enviar Consulta
-                                </button>
-                            </form>
+                            <h3 className="text-xl font-bold tracking-tight mb-6 text-zinc-900">Envianos una solicitud</h3>
+                            <FormSolicitud />
                         </div>
                     </div>
                 </div>

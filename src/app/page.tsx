@@ -282,6 +282,9 @@ export default function HomePage() {
                         {/* Formulario de solicitudes */}
                         <div className="bg-white p-8 md:p-10 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 className="text-xl font-bold tracking-tight mb-6 text-zinc-900">Envianos una solicitud</h3>
+                            <p className="mb-5 text-sm text-zinc-500">
+                                Aca podes cargar pedidos de productos, servicio tecnico o repuestos.
+                            </p>
                             <FormSolicitud />
                         </div>
                     </div>

@@ -2,6 +2,7 @@
 
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
 import {
   enviarSolicitud,
   type ComercialPayload,
@@ -12,16 +13,17 @@ import {
 type Tab = 'repuesto' | 'servicio' | 'comercial';
 
 const TABS: Array<{ value: Tab; label: string }> = [
+  { value: 'comercial', label: 'Producto' },
+  { value: 'servicio', label: 'Servicio tecnico' },
   { value: 'repuesto', label: 'Repuesto' },
-  { value: 'servicio', label: 'Servicio Técnico' },
-  { value: 'comercial', label: 'Comercial / Financiación' },
 ];
 
 const INPUT =
   'w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400';
 const INPUT_ERROR =
   'w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-red-400 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-zinc-400';
-const LABEL = 'block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider';
+const LABEL =
+  'block text-xs font-bold text-zinc-600 mb-1.5 uppercase tracking-wider';
 
 interface FormState {
   nombre: string;
@@ -60,33 +62,69 @@ const INITIAL: FormState = {
 type Errors = Partial<Record<keyof FormState, string>>;
 
 function validate(tab: Tab, form: FormState): Errors {
-  const e: Errors = {};
-  if (form.nombre.trim().length < 2) e.nombre = 'Ingresá tu nombre completo';
-  if (form.telefono.trim().length < 8) e.telefono = 'Ingresá un teléfono válido';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Ingresá un email válido';
+  const errors: Errors = {};
+
+  if (form.nombre.trim().length < 2) {
+    errors.nombre = 'Ingresa tu nombre completo';
+  }
+
+  if (form.telefono.trim().length < 8) {
+    errors.telefono = 'Ingresa un telefono valido';
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = 'Ingresa un email valido';
+  }
 
   if (tab === 'repuesto') {
-    if (form.maquina_tipo.trim().length < 2) e.maquina_tipo = 'Indicá el tipo de máquina';
-    if (form.modelo.trim().length < 2) e.modelo = 'Indicá el modelo';
-    if (form.descripcion_repuesto.trim().length < 10)
-      e.descripcion_repuesto = 'Describí el repuesto (mínimo 10 caracteres)';
+    if (form.maquina_tipo.trim().length < 2) {
+      errors.maquina_tipo = 'Indica el tipo de maquina';
+    }
+
+    if (form.modelo.trim().length < 2) {
+      errors.modelo = 'Indica el modelo';
+    }
+
+    if (form.descripcion_repuesto.trim().length < 10) {
+      errors.descripcion_repuesto =
+        'Describe el repuesto con al menos 10 caracteres';
+    }
   }
 
   if (tab === 'servicio') {
-    if (form.maquina_tipo.trim().length < 2) e.maquina_tipo = 'Indicá el tipo de máquina';
-    if (form.modelo.trim().length < 2) e.modelo = 'Indicá el modelo';
-    if (form.descripcion_problema.trim().length < 10)
-      e.descripcion_problema = 'Describí el problema (mínimo 10 caracteres)';
-    if (form.localidad.trim().length < 2) e.localidad = 'Indicá la localidad';
-    if (form.provincia.trim().length < 2) e.provincia = 'Indicá la provincia';
+    if (form.maquina_tipo.trim().length < 2) {
+      errors.maquina_tipo = 'Indica el tipo de maquina';
+    }
+
+    if (form.modelo.trim().length < 2) {
+      errors.modelo = 'Indica el modelo';
+    }
+
+    if (form.descripcion_problema.trim().length < 10) {
+      errors.descripcion_problema =
+        'Describe el problema con al menos 10 caracteres';
+    }
+
+    if (form.localidad.trim().length < 2) {
+      errors.localidad = 'Indica la localidad';
+    }
+
+    if (form.provincia.trim().length < 2) {
+      errors.provincia = 'Indica la provincia';
+    }
   }
 
   if (tab === 'comercial') {
-    if (form.producto_interes.trim().length < 2) e.producto_interes = 'Indicá el producto de interés';
-    if (form.comentarios.trim().length < 5) e.comentarios = 'Agregá un comentario breve (mínimo 5 caracteres)';
+    if (form.producto_interes.trim().length < 2) {
+      errors.producto_interes = 'Indica el producto de interes';
+    }
+
+    if (form.comentarios.trim().length < 5) {
+      errors.comentarios = 'Agrega un comentario breve';
+    }
   }
 
-  return e;
+  return errors;
 }
 
 function Field({
@@ -102,13 +140,13 @@ function Field({
     <div>
       <label className={LABEL}>{label}</label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error ? <p className="mt-1 text-xs text-red-500">{error}</p> : null}
     </div>
   );
 }
 
 export function FormSolicitud() {
-  const [tab, setTab] = useState<Tab>('repuesto');
+  const [tab, setTab] = useState<Tab>('comercial');
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
@@ -120,22 +158,26 @@ export function FormSolicitud() {
     startedAt.current = Date.now();
   }, []);
 
-  const set = (key: keyof FormState, value: string | boolean) => {
+  function setField(key: keyof FormState, value: string | boolean) {
     setForm(prev => ({ ...prev, [key]: value }));
-    if (errors[key]) setErrors(prev => ({ ...prev, [key]: undefined }));
-  };
 
-  const handleTabChange = (newTab: Tab) => {
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: undefined }));
+    }
+  }
+
+  function handleTabChange(newTab: Tab) {
     setTab(newTab);
     setErrors({});
     setSubmitError(null);
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs = validate(tab, form);
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+
+    const validationErrors = validate(tab, form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -188,27 +230,35 @@ export function FormSolicitud() {
       const result = await enviarSolicitud(payload);
       setSuccess(result.numeroSolicitud);
       setForm(INITIAL);
-    } catch (err) {
+    } catch (error) {
       setSubmitError(
-        err instanceof Error ? err.message : 'No se pudo enviar la solicitud. Intentá nuevamente.'
+        error instanceof Error
+          ? error.message
+          : 'No se pudo enviar la solicitud. Intenta nuevamente.'
       );
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   if (success) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
-        <CheckCircle className="w-14 h-14 text-red-600 mb-4" />
-        <h3 className="text-xl font-bold text-zinc-900 mb-2">¡Solicitud enviada!</h3>
-        <p className="text-zinc-600 text-sm mb-1">
+        <CheckCircle className="mb-4 h-14 w-14 text-red-600" />
+        <h3 className="mb-2 text-xl font-bold text-zinc-900">
+          Solicitud enviada
+        </h3>
+        <p className="mb-1 text-sm text-zinc-600">
           Nos comunicaremos a la brevedad.
         </p>
-        <p className="text-xs text-zinc-400 mb-8 font-mono">{success}</p>
+        <p className="mb-8 font-mono text-xs text-zinc-400">{success}</p>
         <button
-          onClick={() => { setSuccess(null); startedAt.current = Date.now(); }}
-          className="text-sm text-red-600 hover:text-red-700 font-semibold underline underline-offset-2"
+          type="button"
+          onClick={() => {
+            setSuccess(null);
+            startedAt.current = Date.now();
+          }}
+          className="text-sm font-semibold text-red-600 underline underline-offset-2 hover:text-red-700"
         >
           Enviar otra consulta
         </button>
@@ -218,26 +268,29 @@ export function FormSolicitud() {
 
   return (
     <div>
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6">
-        {TABS.map(t => (
+      <div className="mb-6 flex gap-1 rounded-xl bg-slate-100 p-1">
+        {TABS.map(item => (
           <button
-            key={t.value}
+            key={item.value}
             type="button"
-            onClick={() => handleTabChange(t.value)}
-            className={`flex-1 py-2 px-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all ${
-              tab === t.value
+            onClick={() => handleTabChange(item.value)}
+            className={`flex-1 rounded-lg px-2 py-2 text-xs font-bold uppercase tracking-wide transition-all ${
+              tab === item.value
                 ? 'bg-red-600 text-white shadow-sm'
                 : 'text-zinc-500 hover:text-zinc-700'
             }`}
           >
-            {t.label}
+            {item.label}
           </button>
         ))}
       </div>
 
-      <form onSubmit={e => void handleSubmit(e)} noValidate className="space-y-4">
-        {/* Honeypot oculto anti-spam */}
+      <p className="mb-5 text-sm text-zinc-500">
+        Elige si quieres pedir un producto, coordinar un servicio tecnico o
+        consultar por un repuesto.
+      </p>
+
+      <form onSubmit={event => void handleSubmit(event)} noValidate className="space-y-4">
         <input
           type="text"
           name="website"
@@ -249,23 +302,22 @@ export function FormSolicitud() {
           autoComplete="off"
         />
 
-        {/* Campos comunes */}
         <Field label="Nombre completo" error={errors.nombre}>
           <input
             type="text"
             value={form.nombre}
-            onChange={e => set('nombre', e.target.value)}
+            onChange={event => setField('nombre', event.target.value)}
             placeholder="Tu nombre"
             className={errors.nombre ? INPUT_ERROR : INPUT}
           />
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Teléfono" error={errors.telefono}>
+          <Field label="Telefono" error={errors.telefono}>
             <input
               type="tel"
               value={form.telefono}
-              onChange={e => set('telefono', e.target.value)}
+              onChange={event => setField('telefono', event.target.value)}
               placeholder="+54 9 ..."
               className={errors.telefono ? INPUT_ERROR : INPUT}
             />
@@ -274,22 +326,21 @@ export function FormSolicitud() {
             <input
               type="email"
               value={form.email}
-              onChange={e => set('email', e.target.value)}
+              onChange={event => setField('email', event.target.value)}
               placeholder="tu@email.com"
               className={errors.email ? INPUT_ERROR : INPUT}
             />
           </Field>
         </div>
 
-        {/* Campos específicos por tab */}
         {(tab === 'repuesto' || tab === 'servicio') && (
           <>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Tipo de máquina" error={errors.maquina_tipo}>
+              <Field label="Tipo de maquina" error={errors.maquina_tipo}>
                 <input
                   type="text"
                   value={form.maquina_tipo}
-                  onChange={e => set('maquina_tipo', e.target.value)}
+                  onChange={event => setField('maquina_tipo', event.target.value)}
                   placeholder="Ej: Tractor"
                   className={errors.maquina_tipo ? INPUT_ERROR : INPUT}
                 />
@@ -298,17 +349,18 @@ export function FormSolicitud() {
                 <input
                   type="text"
                   value={form.modelo}
-                  onChange={e => set('modelo', e.target.value)}
+                  onChange={event => setField('modelo', event.target.value)}
                   placeholder="Ej: Puma 185"
                   className={errors.modelo ? INPUT_ERROR : INPUT}
                 />
               </Field>
             </div>
-            <Field label="Número de serie (opcional)">
+
+            <Field label="Numero de serie (opcional)">
               <input
                 type="text"
                 value={form.numero_serie}
-                onChange={e => set('numero_serie', e.target.value)}
+                onChange={event => setField('numero_serie', event.target.value)}
                 placeholder="Nro. de chasis / VIN"
                 className={INPUT}
               />
@@ -317,12 +369,17 @@ export function FormSolicitud() {
         )}
 
         {tab === 'repuesto' && (
-          <Field label="¿Qué repuesto necesitás?" error={errors.descripcion_repuesto}>
+          <Field
+            label="Que repuesto necesitas?"
+            error={errors.descripcion_repuesto}
+          >
             <textarea
               rows={4}
               value={form.descripcion_repuesto}
-              onChange={e => set('descripcion_repuesto', e.target.value)}
-              placeholder="Describí el repuesto o pieza que necesitás, código si lo tenés..."
+              onChange={event =>
+                setField('descripcion_repuesto', event.target.value)
+              }
+              placeholder="Describe el repuesto o pieza que necesitas, y el codigo si lo tienes..."
               className={`${errors.descripcion_repuesto ? INPUT_ERROR : INPUT} resize-none`}
             />
           </Field>
@@ -330,21 +387,27 @@ export function FormSolicitud() {
 
         {tab === 'servicio' && (
           <>
-            <Field label="Descripción del problema" error={errors.descripcion_problema}>
+            <Field
+              label="Descripcion del problema"
+              error={errors.descripcion_problema}
+            >
               <textarea
                 rows={3}
                 value={form.descripcion_problema}
-                onChange={e => set('descripcion_problema', e.target.value)}
-                placeholder="Describí el problema técnico o falla..."
+                onChange={event =>
+                  setField('descripcion_problema', event.target.value)
+                }
+                placeholder="Describe la falla o el problema tecnico..."
                 className={`${errors.descripcion_problema ? INPUT_ERROR : INPUT} resize-none`}
               />
             </Field>
+
             <div className="grid grid-cols-2 gap-4">
               <Field label="Localidad" error={errors.localidad}>
                 <input
                   type="text"
                   value={form.localidad}
-                  onChange={e => set('localidad', e.target.value)}
+                  onChange={event => setField('localidad', event.target.value)}
                   placeholder="Tu localidad"
                   className={errors.localidad ? INPUT_ERROR : INPUT}
                 />
@@ -353,7 +416,7 @@ export function FormSolicitud() {
                 <input
                   type="text"
                   value={form.provincia}
-                  onChange={e => set('provincia', e.target.value)}
+                  onChange={event => setField('provincia', event.target.value)}
                   placeholder="Tu provincia"
                   className={errors.provincia ? INPUT_ERROR : INPUT}
                 />
@@ -364,11 +427,21 @@ export function FormSolicitud() {
 
         {tab === 'comercial' && (
           <>
-            <Field label="Producto de interés" error={errors.producto_interes}>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-zinc-600">
+              Usa este formulario para tractores, cosechadoras, pulverizadoras,
+              lubricantes y consultas comerciales o de financiacion.
+            </div>
+
+            <Field
+              label="Producto de interes"
+              error={errors.producto_interes}
+            >
               <input
                 type="text"
                 value={form.producto_interes}
-                onChange={e => set('producto_interes', e.target.value)}
+                onChange={event =>
+                  setField('producto_interes', event.target.value)
+                }
                 placeholder="Ej: Tractor Puma 185, Cosechadora Axial-Flow..."
                 className={errors.producto_interes ? INPUT_ERROR : INPUT}
               />
@@ -378,7 +451,7 @@ export function FormSolicitud() {
               <input
                 type="text"
                 value={form.cuit}
-                onChange={e => set('cuit', e.target.value)}
+                onChange={event => setField('cuit', event.target.value)}
                 placeholder="20-12345678-9"
                 className={INPUT}
               />
@@ -389,14 +462,16 @@ export function FormSolicitud() {
                 type="checkbox"
                 id="requiere_financiacion"
                 checked={form.requiere_financiacion}
-                onChange={e => set('requiere_financiacion', e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                onChange={event =>
+                  setField('requiere_financiacion', event.target.checked)
+                }
+                className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
               />
               <label
                 htmlFor="requiere_financiacion"
-                className="text-sm font-medium text-zinc-700 cursor-pointer"
+                className="cursor-pointer text-sm font-medium text-zinc-700"
               >
-                Necesito financiación
+                Necesito financiacion
               </label>
             </div>
 
@@ -404,32 +479,32 @@ export function FormSolicitud() {
               <textarea
                 rows={3}
                 value={form.comentarios}
-                onChange={e => set('comentarios', e.target.value)}
-                placeholder="Contanos tu situación, zona, hectáreas trabajadas, preferencias..."
+                onChange={event => setField('comentarios', event.target.value)}
+                placeholder="Contanos tu zona, tipo de trabajo, hectareas y preferencias..."
                 className={`${errors.comentarios ? INPUT_ERROR : INPUT} resize-none`}
               />
             </Field>
           </>
         )}
 
-        {submitError && (
+        {submitError ? (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
             {submitError}
           </div>
-        )}
+        ) : null}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 mt-1 bg-red-600 hover:bg-zinc-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-lg text-sm transition-colors shadow-sm uppercase tracking-wide flex items-center justify-center gap-2"
+          className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Enviando...
             </>
           ) : (
-            'Enviar Consulta'
+            'Enviar consulta'
           )}
         </button>
       </form>

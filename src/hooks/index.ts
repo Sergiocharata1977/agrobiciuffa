@@ -5,3 +5,4 @@ export { useFirestoreCollection, where, orderBy, limit } from './useFirestore';
 export { useDebounce } from './useDebounce';
 export { useMounted } from './useMounted';
 export { useBreakpoint } from './useBreakpoint';
+export { useProductosCatalogo } from './useProductosCatalogo';

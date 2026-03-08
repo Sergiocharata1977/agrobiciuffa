@@ -4,6 +4,10 @@ import { CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  useProductosCatalogo,
+  type ProductoCatalogo,
+} from '@/hooks/useProductosCatalogo';
+import {
   enviarSolicitud,
   type ComercialPayload,
   type RepuestoPayload,
@@ -38,6 +42,9 @@ interface FormState {
   localidad: string;
   provincia: string;
   producto_interes: string;
+  producto_id: string;
+  producto_nombre: string;
+  precio_referencia: number | null;
   requiere_financiacion: boolean;
   comentarios: string;
 }
@@ -55,6 +62,9 @@ const INITIAL: FormState = {
   localidad: '',
   provincia: '',
   producto_interes: '',
+  producto_id: '',
+  producto_nombre: '',
+  precio_referencia: null,
   requiere_financiacion: false,
   comentarios: '',
 };
@@ -145,6 +155,35 @@ function Field({
   );
 }
 
+const currencyFormatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  maximumFractionDigits: 0,
+});
+
+function formatProductoOption(producto: ProductoCatalogo) {
+  const identity = [producto.marca, producto.modelo]
+    .map(value => value?.trim())
+    .filter(Boolean)
+    .join(' ');
+  const baseName = identity ? `${identity} - ${producto.nombre}` : producto.nombre;
+
+  if (typeof producto.precio_contado === 'number') {
+    return `${baseName} (desde ${currencyFormatter.format(producto.precio_contado)})`;
+  }
+
+  return baseName;
+}
+
+function getProductoNombre(producto: ProductoCatalogo) {
+  const identity = [producto.marca, producto.modelo]
+    .map(value => value?.trim())
+    .filter(Boolean)
+    .join(' ');
+
+  return identity ? `${identity} - ${producto.nombre}` : producto.nombre;
+}
+
 export function FormSolicitud() {
   const [tab, setTab] = useState<Tab>('comercial');
   const [form, setForm] = useState<FormState>(INITIAL);
@@ -153,12 +192,18 @@ export function FormSolicitud() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const startedAt = useRef<number>(Date.now());
+  const { productos, loading: productosLoading, error: productosError } =
+    useProductosCatalogo();
+  const catalogoDisponible = productos.length > 0 && !productosError;
 
   useEffect(() => {
     startedAt.current = Date.now();
   }, []);
 
-  function setField(key: keyof FormState, value: string | boolean) {
+  function setField(
+    key: keyof FormState,
+    value: string | boolean | number | null
+  ) {
     setForm(prev => ({ ...prev, [key]: value }));
 
     if (errors[key]) {
@@ -221,7 +266,11 @@ export function FormSolicitud() {
         payload = {
           ...base,
           tipo: 'comercial',
-          producto_interes: form.producto_interes.trim(),
+          producto_id: form.producto_id || undefined,
+          producto_nombre: form.producto_nombre.trim() || undefined,
+          precio_referencia: form.precio_referencia,
+          producto_interes:
+            form.producto_nombre.trim() || form.producto_interes.trim(),
           requiere_financiacion: form.requiere_financiacion,
           comentarios: form.comentarios.trim(),
         };
@@ -436,15 +485,62 @@ export function FormSolicitud() {
               label="Producto de interes"
               error={errors.producto_interes}
             >
-              <input
-                type="text"
-                value={form.producto_interes}
-                onChange={event =>
-                  setField('producto_interes', event.target.value)
-                }
-                placeholder="Ej: Tractor Puma 185, Cosechadora Axial-Flow..."
-                className={errors.producto_interes ? INPUT_ERROR : INPUT}
-              />
+              {productosLoading ? (
+                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-zinc-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Cargando catalogo...
+                </div>
+              ) : catalogoDisponible ? (
+                <select
+                  value={form.producto_id}
+                  onChange={event => {
+                    const productoSeleccionado = productos.find(
+                      producto => producto.id === event.target.value
+                    );
+
+                    setForm(prev => ({
+                      ...prev,
+                      producto_id: productoSeleccionado?.id ?? '',
+                      producto_nombre: productoSeleccionado
+                        ? getProductoNombre(productoSeleccionado)
+                        : '',
+                      precio_referencia:
+                        productoSeleccionado?.precio_contado ?? null,
+                      producto_interes: productoSeleccionado
+                        ? getProductoNombre(productoSeleccionado)
+                        : '',
+                    }));
+
+                    if (errors.producto_interes) {
+                      setErrors(prev => ({
+                        ...prev,
+                        producto_interes: undefined,
+                      }));
+                    }
+                  }}
+                  className={errors.producto_interes ? INPUT_ERROR : INPUT}
+                >
+                  <option value="">Selecciona un producto del catalogo</option>
+                  {productos.map(producto => (
+                    <option key={producto.id} value={producto.id}>
+                      {formatProductoOption(producto)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={form.producto_interes}
+                  onChange={event => {
+                    setField('producto_interes', event.target.value);
+                    setField('producto_id', '');
+                    setField('producto_nombre', '');
+                    setField('precio_referencia', null);
+                  }}
+                  placeholder="Describi el producto de tu interes"
+                  className={errors.producto_interes ? INPUT_ERROR : INPUT}
+                />
+              )}
             </Field>
 
             <Field label="CUIT / CUIL (opcional)">

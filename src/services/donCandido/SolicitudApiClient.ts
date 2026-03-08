@@ -1,4 +1,8 @@
-const BASE_URL = (process.env.NEXT_PUBLIC_DONC_SOLICITUDES_URL ?? '').replace(/\/$/, '');
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_9001APP_URL ??
+  process.env.NEXT_PUBLIC_DONC_SOLICITUDES_URL ??
+  ''
+).replace(/\/$/, '');
 
 export type SolicitudTipo = 'repuesto' | 'servicio' | 'comercial';
 
@@ -32,6 +36,9 @@ export interface ServicioPayload extends BasePayload {
 
 export interface ComercialPayload extends BasePayload {
   tipo: 'comercial';
+  producto_id?: string;
+  producto_nombre?: string;
+  precio_referencia?: number | null;
   producto_interes: string;
   requiere_financiacion: boolean;
   comentarios: string;

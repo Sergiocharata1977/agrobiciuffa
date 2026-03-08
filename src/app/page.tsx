@@ -36,6 +36,12 @@ export default function HomePage() {
                         <Link href="#maquinaria" className="hover:text-red-400 transition-colors">Maquinaria</Link>
                         <Link href="#postventa" className="hover:text-red-400 transition-colors">Postventa</Link>
                         <Link href="#empresa" className="hover:text-red-400 transition-colors">Empresa</Link>
+                        <Link href="/login" className="hover:text-red-400 transition-colors flex items-center gap-1.5">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Mi cuenta
+                        </Link>
                         <Link href="#contacto" className="px-5 py-2.5 bg-red-600/90 hover:bg-red-600 border border-white/30 text-white rounded-md transition-all font-semibold shadow-sm">
                             Contactar
                         </Link>

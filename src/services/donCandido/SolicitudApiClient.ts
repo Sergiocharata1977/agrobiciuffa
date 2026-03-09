@@ -4,6 +4,8 @@ const BASE_URL = (
   ''
 ).replace(/\/$/, '');
 
+const TENANT_SLUG = (process.env.NEXT_PUBLIC_TENANT_SLUG ?? '').trim();
+
 export type SolicitudTipo = 'repuesto' | 'servicio' | 'comercial';
 
 interface BasePayload {
@@ -63,7 +65,10 @@ export async function enviarSolicitud(payload: SolicitudPayload): Promise<Solici
   const response = await fetch(`${BASE_URL}/api/public/solicitudes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      ...(TENANT_SLUG ? { tenant_slug: TENANT_SLUG } : {}),
+    }),
   });
 
   const data = await response.json() as Record<string, unknown>;

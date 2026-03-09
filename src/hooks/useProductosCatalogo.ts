@@ -16,7 +16,7 @@ export interface ProductoCatalogo {
 }
 
 const BASE_URL = (process.env.NEXT_PUBLIC_9001APP_URL ?? '').replace(/\/$/, '');
-const TENANT_KEY = (process.env.NEXT_PUBLIC_AGROBICIUFA_TENANT_KEY ?? '').trim();
+const TENANT_SLUG = (process.env.NEXT_PUBLIC_TENANT_SLUG ?? '').trim();
 
 function normalizeProducto(raw: unknown): ProductoCatalogo | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -79,8 +79,8 @@ export function useProductosCatalogo() {
 
       try {
         const url = new URL(`${BASE_URL}/api/public/productos`);
-        if (TENANT_KEY) {
-          url.searchParams.set('tenant_key', TENANT_KEY);
+        if (TENANT_SLUG) {
+          url.searchParams.set('tenant', TENANT_SLUG);
         }
 
         const response = await fetch(url.toString(), {

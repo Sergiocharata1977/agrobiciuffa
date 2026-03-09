@@ -31,7 +31,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.env*.local
 
 # Firebase
 service-account.json
@@ -50,3 +49,6 @@ firebase-debug.log
 
 # TypeScript
 *.tsbuildinfo
+
+# Sentry
+.sentryclirc

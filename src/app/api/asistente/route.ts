@@ -8,14 +8,16 @@ let groqInstance: Groq | null = null;
 
 function getGroqClient(): Groq {
     if (!groqInstance) {
-        groqInstance = new Groq({
-            apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build',
-        });
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            throw new Error('GROQ_API_KEY no configurada en variables de entorno');
+        }
+        groqInstance = new Groq({ apiKey });
     }
     return groqInstance;
 }
 
-const BASE_SYSTEM_PROMPT = `Sos Don Cándido, el asistente virtual del portal de clientes de Agro Biciufa, concesionario oficial CASE IH en Argentina.
+const BASE_SYSTEM_PROMPT = `Sos Don Mario IA, el asistente virtual del portal de clientes de Agro Biciufa, concesionario oficial CASE IH en Argentina.
 
 TU ROL: Ayudás a los clientes registrados con consultas sobre sus equipos CASE IH, el estado de sus solicitudes, repuestos, servicios técnicos y todo lo relacionado con su flota de maquinaria agrícola.
 

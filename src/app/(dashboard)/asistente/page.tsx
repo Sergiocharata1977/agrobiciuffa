@@ -45,7 +45,7 @@ export default function AsistentePage() {
         setMessages([
             {
                 role: 'assistant',
-                content: `¡Hola ${firstName}! Soy Don Cándido 🤠, tu asistente del portal de Agro Biciufa.\n\nPuedo ayudarte con consultas sobre tus equipos CASE IH, el estado de tus solicitudes, repuestos, mantenimiento y más. ¿En qué te puedo ayudar hoy?`,
+                content: `¡Hola ${firstName}! Soy Don Mario IA 🤠, tu asistente del portal de Agro Biciufa.\n\nPuedo ayudarte con consultas sobre tus equipos CASE IH, el estado de tus solicitudes, repuestos, mantenimiento y más. ¿En qué te puedo ayudar hoy?`,
             },
         ]);
     }, [firstName]);
@@ -126,12 +126,12 @@ export default function AsistentePage() {
             <div className="flex items-center gap-4 pb-4 border-b border-zinc-200">
                 <div className="relative">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 text-white font-bold text-lg flex-shrink-0">
-                        DC
+                        DM
                     </div>
                     <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-400 rounded-full border-2 border-white"></span>
                 </div>
                 <div>
-                    <h1 className="font-bold text-zinc-900 text-lg leading-tight">Don Cándido</h1>
+                    <h1 className="font-bold text-zinc-900 text-lg leading-tight">Don Mario IA</h1>
                     <p className="text-xs text-zinc-500">Asistente de Agro Biciufa · CASE IH</p>
                 </div>
             </div>
@@ -148,7 +148,7 @@ export default function AsistentePage() {
                     >
                         {msg.role === 'assistant' && (
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white font-bold text-xs flex-shrink-0 mr-2 mt-1">
-                                DC
+                                DM
                             </div>
                         )}
                         <div
@@ -225,7 +225,7 @@ export default function AsistentePage() {
                     </button>
                 </div>
                 <p className="text-xs text-zinc-400 mt-2 text-center">
-                    Don Cándido puede cometer errores. Para info crítica consultá al equipo de Agro Biciufa.
+                    Don Mario IA puede cometer errores. Para info crítica consultá al equipo de Agro Biciufa.
                 </p>
             </div>
         </div>

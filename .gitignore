@@ -52,3 +52,5 @@ firebase-debug.log
 
 # Sentry
 .sentryclirc
+
+.vercel

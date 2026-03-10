@@ -18,7 +18,9 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await signIn(email, password);
+            const credential = await signIn(email, password);
+            // Set cookie immediately before navigating so middleware sees it
+            document.cookie = `auth-token=${credential.user.uid}; path=/; max-age=604800; SameSite=Lax`;
             router.push('/dashboard');
         } catch (err: unknown) {
             console.error('Login error:', err);
@@ -43,7 +45,9 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await signInWithGoogle();
+            const credential = await signInWithGoogle();
+            // Set cookie immediately before navigating so middleware sees it
+            document.cookie = `auth-token=${credential.user.uid}; path=/; max-age=604800; SameSite=Lax`;
             router.push('/dashboard');
         } catch (err) {
             console.error('Google signin error:', err);

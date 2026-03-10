@@ -110,8 +110,8 @@ export default function DashboardPage() {
 
             {/* Quick actions */}
             <div className="grid grid-cols-2 gap-4">
-                <a
-                    href="/#solicitud"
+                <Link
+                    href="/nueva-solicitud"
                     className="flex items-center gap-3 bg-white rounded-xl border border-zinc-200 p-4 hover:border-red-300 hover:bg-red-50 transition-colors group"
                 >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-600 flex-shrink-0">
@@ -121,9 +121,9 @@ export default function DashboardPage() {
                     </div>
                     <div>
                         <p className="font-medium text-zinc-900 text-sm">Nueva solicitud</p>
-                        <p className="text-xs text-zinc-500">Ir al formulario</p>
+                        <p className="text-xs text-zinc-500">Cargar pedido o consulta</p>
                     </div>
-                </a>
+                </Link>
 
                 <Link
                     href="/mi-cuenta"

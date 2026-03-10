@@ -184,9 +184,9 @@ function getProductoNombre(producto: ProductoCatalogo) {
   return identity ? `${identity} - ${producto.nombre}` : producto.nombre;
 }
 
-export function FormSolicitud() {
+export function FormSolicitud({ initialValues }: { initialValues?: Partial<FormState> }) {
   const [tab, setTab] = useState<Tab>('comercial');
-  const [form, setForm] = useState<FormState>(INITIAL);
+  const [form, setForm] = useState<FormState>({ ...INITIAL, ...initialValues });
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

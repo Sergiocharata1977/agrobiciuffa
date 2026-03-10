@@ -92,11 +92,40 @@ function SolicitudRow({ sol }: { sol: SolicitudResumen }) {
     );
 }
 
+const SERVICIOS_DEMO: SolicitudResumen[] = [
+    {
+        id: 'demo-s1', numeroSolicitud: '0045', tipo: 'servicio', estado: 'en_revision',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Tractor', modelo: 'Puma 185',
+        descripcion_problema: 'Falla en la transmisión CVT, no engrana la marcha atrás',
+        localidad: 'San Francisco', provincia: 'Córdoba',
+    },
+    {
+        id: 'demo-s2', numeroSolicitud: '0039', tipo: 'servicio', estado: 'cerrada',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Cosechadora', modelo: 'Axial-Flow 8250',
+        descripcion_problema: 'Revisión preventiva pre-cosecha, ajuste del sistema de trilla',
+        localidad: 'Arroyito', provincia: 'Córdoba',
+    },
+    {
+        id: 'demo-s3', numeroSolicitud: '0044', tipo: 'servicio', estado: 'recibida',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Pulverizadora', modelo: 'Patriot 250',
+        descripcion_problema: 'Pérdida de presión en el circuito hidráulico de la barra',
+        localidad: 'Morteros', provincia: 'Córdoba',
+    },
+];
+
 export default function ServiciosPage() {
     const { solicitudes, loading, error } = useMisSolicitudes();
     const [view, setView] = useState<ViewMode>('tarjetas');
 
-    const servicios = solicitudes.filter(s => s.tipo === 'servicio');
+    const apiServicios = solicitudes.filter(s => s.tipo === 'servicio');
+    const servicios = !loading && (error || apiServicios.length === 0) ? SERVICIOS_DEMO : apiServicios;
+    const isDemo = !loading && (error || apiServicios.length === 0);
 
     return (
         <div className="space-y-6">
@@ -135,16 +164,19 @@ export default function ServiciosPage() {
                 </div>
             </div>
 
+            {/* Demo notice */}
+            {isDemo && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                    Los siguientes son ejemplos. Tus solicitudes de servicio aparecerán aquí cuando las registres.
+                </div>
+            )}
+
             {/* Content */}
             {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[1, 2, 3].map(i => (
                         <div key={i} className="h-44 bg-zinc-100 rounded-xl animate-pulse" />
                     ))}
-                </div>
-            ) : error ? (
-                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
                 </div>
             ) : servicios.length === 0 ? (
                 <div className="bg-white rounded-xl border border-zinc-200 p-12 text-center">

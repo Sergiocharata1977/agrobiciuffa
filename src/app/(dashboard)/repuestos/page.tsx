@@ -84,11 +84,37 @@ function SolicitudRow({ sol }: { sol: SolicitudResumen }) {
     );
 }
 
+const REPUESTOS_DEMO: SolicitudResumen[] = [
+    {
+        id: 'demo-1', numeroSolicitud: '0042', tipo: 'repuesto', estado: 'gestionando',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Tractor', modelo: 'Puma 185',
+        descripcion_repuesto: 'Filtro de aceite motor CNH p/n 84229862',
+    },
+    {
+        id: 'demo-2', numeroSolicitud: '0038', tipo: 'repuesto', estado: 'cerrada',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Cosechadora', modelo: 'Axial-Flow 8250',
+        descripcion_repuesto: 'Correa de variador, 2 unidades',
+    },
+    {
+        id: 'demo-3', numeroSolicitud: '0031', tipo: 'repuesto', estado: 'recibida',
+        nombre: '', email: '', telefono: '',
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        maquina_tipo: 'Pulverizadora', modelo: 'Patriot 250',
+        descripcion_repuesto: 'Pastilla difusora TeeJet 11004 (pack x20)',
+    },
+];
+
 export default function RepuestosPage() {
     const { solicitudes, loading, error } = useMisSolicitudes();
     const [view, setView] = useState<ViewMode>('tarjetas');
 
-    const repuestos = solicitudes.filter(s => s.tipo === 'repuesto');
+    const apiRepuestos = solicitudes.filter(s => s.tipo === 'repuesto');
+    const repuestos = !loading && (error || apiRepuestos.length === 0) ? REPUESTOS_DEMO : apiRepuestos;
+    const isDemo = !loading && (error || apiRepuestos.length === 0);
 
     return (
         <div className="space-y-6">
@@ -127,16 +153,19 @@ export default function RepuestosPage() {
                 </div>
             </div>
 
+            {/* Demo notice */}
+            {isDemo && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                    Los siguientes son ejemplos. Tus solicitudes aparecerán aquí cuando las registres.
+                </div>
+            )}
+
             {/* Content */}
             {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[1, 2, 3].map(i => (
                         <div key={i} className="h-40 bg-zinc-100 rounded-xl animate-pulse" />
                     ))}
-                </div>
-            ) : error ? (
-                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
                 </div>
             ) : repuestos.length === 0 ? (
                 <div className="bg-white rounded-xl border border-zinc-200 p-12 text-center">

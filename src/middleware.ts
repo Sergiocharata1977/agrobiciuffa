@@ -1,32 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const protectedRoutes = ['/dashboard', '/mis-solicitudes', '/mi-cuenta', '/roadmap', '/contabilidad', '/team', '/settings'];
-
-// Routes that should redirect to dashboard if already logged in
+// Auth is handled client-side via Firebase — the middleware only handles
+// public-facing routes. Protected dashboard routes use the client AuthGuard.
 const authRoutes = ['/login', '/register', '/forgot-password'];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Get auth token from cookie
+    // Get auth token from cookie (set by login page for SSR-aware redirects)
     const authToken = request.cookies.get('auth-token')?.value;
 
-    // Check if route is protected
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-
-    // Check if route is auth route
     const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
-    // Redirect to login if accessing protected route without auth
-    if (isProtectedRoute && !authToken) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(loginUrl);
-    }
-
-    // Redirect to dashboard if accessing auth route while logged in
+    // Redirect to dashboard if accessing auth route while already logged in
     if (isAuthRoute && authToken) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }

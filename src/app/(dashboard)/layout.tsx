@@ -1,11 +1,34 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+
+function AuthGuard({ children }: { children: ReactNode }) {
+    const { firebaseUser, loading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !firebaseUser) {
+            router.replace('/login');
+        }
+    }, [firebaseUser, loading, router]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+                <div className="h-8 w-8 border-4 border-zinc-200 border-t-red-600 rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!firebaseUser) return null;
+
+    return <>{children}</>;
+}
 
 function SidebarContent() {
     const pathname = usePathname();
@@ -162,19 +185,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <AuthProvider>
             <OrganizationProvider>
-                <div className="min-h-screen bg-zinc-50">
-                    {/* Sidebar */}
-                    <aside className="fixed left-0 top-0 z-40 h-screen w-60 bg-zinc-900 border-r border-zinc-800">
-                        <SidebarContent />
-                    </aside>
+                <AuthGuard>
+                    <div className="min-h-screen bg-zinc-50">
+                        {/* Sidebar */}
+                        <aside className="fixed left-0 top-0 z-40 h-screen w-60 bg-zinc-900 border-r border-zinc-800">
+                            <SidebarContent />
+                        </aside>
 
-                    {/* Main Content */}
-                    <main className="pl-60 min-h-screen">
-                        <div className="p-6 w-full">
-                            {children}
-                        </div>
-                    </main>
-                </div>
+                        {/* Main Content */}
+                        <main className="pl-60 min-h-screen">
+                            <div className="p-6 w-full">
+                                {children}
+                            </div>
+                        </main>
+                    </div>
+                </AuthGuard>
             </OrganizationProvider>
         </AuthProvider>
     );

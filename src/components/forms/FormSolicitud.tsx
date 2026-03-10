@@ -71,18 +71,18 @@ const INITIAL: FormState = {
 
 type Errors = Partial<Record<keyof FormState, string>>;
 
-function validate(tab: Tab, form: FormState): Errors {
+function validate(tab: Tab, form: FormState, hidePersonalData = false): Errors {
   const errors: Errors = {};
 
-  if (form.nombre.trim().length < 2) {
+  if (!hidePersonalData && form.nombre.trim().length < 2) {
     errors.nombre = 'Ingresa tu nombre completo';
   }
 
-  if (form.telefono.trim().length < 8) {
+  if (!hidePersonalData && form.telefono.trim().length < 8) {
     errors.telefono = 'Ingresa un telefono valido';
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+  if (!hidePersonalData && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
     errors.email = 'Ingresa un email valido';
   }
 
@@ -184,8 +184,16 @@ function getProductoNombre(producto: ProductoCatalogo) {
   return identity ? `${identity} - ${producto.nombre}` : producto.nombre;
 }
 
-export function FormSolicitud({ initialValues }: { initialValues?: Partial<FormState> }) {
-  const [tab, setTab] = useState<Tab>('comercial');
+export function FormSolicitud({
+  initialValues,
+  initialTab,
+  hidePersonalData = false,
+}: {
+  initialValues?: Partial<FormState>;
+  initialTab?: Tab;
+  hidePersonalData?: boolean;
+}) {
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'comercial');
   const [form, setForm] = useState<FormState>({ ...INITIAL, ...initialValues });
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
@@ -220,7 +228,7 @@ export function FormSolicitud({ initialValues }: { initialValues?: Partial<FormS
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    const validationErrors = validate(tab, form);
+    const validationErrors = validate(tab, form, hidePersonalData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -351,36 +359,40 @@ export function FormSolicitud({ initialValues }: { initialValues?: Partial<FormS
           autoComplete="off"
         />
 
-        <Field label="Nombre completo" error={errors.nombre}>
-          <input
-            type="text"
-            value={form.nombre}
-            onChange={event => setField('nombre', event.target.value)}
-            placeholder="Tu nombre"
-            className={errors.nombre ? INPUT_ERROR : INPUT}
-          />
-        </Field>
+        {!hidePersonalData && (
+          <>
+            <Field label="Nombre completo" error={errors.nombre}>
+              <input
+                type="text"
+                value={form.nombre}
+                onChange={event => setField('nombre', event.target.value)}
+                placeholder="Tu nombre"
+                className={errors.nombre ? INPUT_ERROR : INPUT}
+              />
+            </Field>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Telefono" error={errors.telefono}>
-            <input
-              type="tel"
-              value={form.telefono}
-              onChange={event => setField('telefono', event.target.value)}
-              placeholder="+54 9 ..."
-              className={errors.telefono ? INPUT_ERROR : INPUT}
-            />
-          </Field>
-          <Field label="Email" error={errors.email}>
-            <input
-              type="email"
-              value={form.email}
-              onChange={event => setField('email', event.target.value)}
-              placeholder="tu@email.com"
-              className={errors.email ? INPUT_ERROR : INPUT}
-            />
-          </Field>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Telefono" error={errors.telefono}>
+                <input
+                  type="tel"
+                  value={form.telefono}
+                  onChange={event => setField('telefono', event.target.value)}
+                  placeholder="+54 9 ..."
+                  className={errors.telefono ? INPUT_ERROR : INPUT}
+                />
+              </Field>
+              <Field label="Email" error={errors.email}>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={event => setField('email', event.target.value)}
+                  placeholder="tu@email.com"
+                  className={errors.email ? INPUT_ERROR : INPUT}
+                />
+              </Field>
+            </div>
+          </>
+        )}
 
         {(tab === 'repuesto' || tab === 'servicio') && (
           <>

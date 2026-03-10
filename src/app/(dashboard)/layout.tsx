@@ -4,7 +4,6 @@ import { ReactNode, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 function AuthGuard({ children }: { children: ReactNode }) {
@@ -184,23 +183,21 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <AuthProvider>
-            <OrganizationProvider>
-                <AuthGuard>
-                    <div className="min-h-screen bg-zinc-50">
-                        {/* Sidebar */}
-                        <aside className="fixed left-0 top-0 z-40 h-screen w-60 bg-zinc-900 border-r border-zinc-800">
-                            <SidebarContent />
-                        </aside>
+            <AuthGuard>
+                <div className="min-h-screen bg-zinc-50">
+                    {/* Sidebar */}
+                    <aside className="fixed left-0 top-0 z-40 h-screen w-60 bg-zinc-900 border-r border-zinc-800">
+                        <SidebarContent />
+                    </aside>
 
-                        {/* Main Content */}
-                        <main className="pl-60 min-h-screen">
-                            <div className="p-6 w-full">
-                                {children}
-                            </div>
-                        </main>
-                    </div>
-                </AuthGuard>
-            </OrganizationProvider>
+                    {/* Main Content */}
+                    <main className="pl-60 min-h-screen">
+                        <div className="p-6 w-full">
+                            {children}
+                        </div>
+                    </main>
+                </div>
+            </AuthGuard>
         </AuthProvider>
     );
 }

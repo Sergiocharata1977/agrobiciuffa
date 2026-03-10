@@ -3,7 +3,6 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getAnalytics, isSupported } from 'firebase/analytics';
 import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
@@ -88,13 +87,6 @@ export function getStorageClient(): FirebaseStorage {
     return cachedStorage;
 }
 
-// Analytics only on client side
-export const analytics =
-    typeof window !== 'undefined'
-        ? isSupported().then(yes => {
-            const app = getFirebaseApp();
-            return yes && app ? getAnalytics(app) : null;
-        })
-        : null;
+// Analytics not used in the customer portal
 
 export default getFirebaseApp;

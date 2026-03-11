@@ -1,20 +1,20 @@
-import Groq from 'groq-sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-let groqInstance: Groq | null = null;
+let anthropicInstance: Anthropic | null = null;
 
-function getGroqClient(): Groq {
-    if (!groqInstance) {
-        const apiKey = process.env.GROQ_API_KEY;
+function getAnthropicClient(): Anthropic {
+    if (!anthropicInstance) {
+        const apiKey = process.env.ANTHROPIC_API_KEY;
         if (!apiKey) {
-            throw new Error('GROQ_API_KEY no configurada en variables de entorno');
+            throw new Error('ANTHROPIC_API_KEY no configurada en variables de entorno');
         }
-        groqInstance = new Groq({ apiKey });
+        anthropicInstance = new Anthropic({ apiKey });
     }
-    return groqInstance;
+    return anthropicInstance;
 }
 
 const BASE_SYSTEM_PROMPT = `Sos Don Mario IA, el asistente virtual del portal de clientes de Agro Biciufa, concesionario oficial CASE IH en Argentina.
@@ -84,29 +84,28 @@ export async function POST(request: NextRequest) {
 
         const systemPrompt = buildSystemPrompt(context);
 
-        const groqMessages = [
-            { role: 'system' as const, content: systemPrompt },
+        const messages = [
             ...chatHistory
-                .slice(-12) // last 12 messages max
+                .slice(-12)
                 .map((msg: { role: 'user' | 'assistant'; content: string }) => ({
-                    role: msg.role,
+                    role: msg.role as 'user' | 'assistant',
                     content: msg.content,
                 })),
             { role: 'user' as const, content: message },
         ];
 
-        const groq = getGroqClient();
-        const completion = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
-            messages: groqMessages,
-            temperature: 0.7,
+        const anthropic = getAnthropicClient();
+        const response = await anthropic.messages.create({
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 600,
-            top_p: 0.9,
+            system: systemPrompt,
+            messages,
         });
 
         const reply =
-            completion.choices[0]?.message?.content ||
-            'Lo siento, no pude procesar tu consulta en este momento. ¿Podés intentarlo de nuevo?';
+            response.content[0]?.type === 'text'
+                ? response.content[0].text
+                : 'Lo siento, no pude procesar tu consulta en este momento. ¿Podés intentarlo de nuevo?';
 
         return NextResponse.json({ success: true, reply });
     } catch (error) {

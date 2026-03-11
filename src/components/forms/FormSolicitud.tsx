@@ -78,7 +78,7 @@ function validate(tab: Tab, form: FormState, hidePersonalData = false): Errors {
     errors.nombre = 'Ingresa tu nombre completo';
   }
 
-  if (!hidePersonalData && form.telefono.trim().length < 8) {
+  if (form.telefono.trim().length < 8) {
     errors.telefono = 'Ingresa un telefono valido';
   }
 
@@ -392,6 +392,18 @@ export function FormSolicitud({
               </Field>
             </div>
           </>
+        )}
+
+        {hidePersonalData && (
+          <Field label="Telefono de contacto" error={errors.telefono}>
+            <input
+              type="tel"
+              value={form.telefono}
+              onChange={event => setField('telefono', event.target.value)}
+              placeholder="+54 9 ..."
+              className={errors.telefono ? INPUT_ERROR : INPUT}
+            />
+          </Field>
         )}
 
         {(tab === 'repuesto' || tab === 'servicio') && (

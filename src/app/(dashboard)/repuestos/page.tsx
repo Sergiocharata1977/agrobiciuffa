@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMisSolicitudes, type SolicitudResumen } from '@/hooks/useMisSolicitudes';
+import { FormSolicitud } from '@/components/forms/FormSolicitud';
 
 type ViewMode = 'tarjetas' | 'lista';
 
@@ -26,14 +27,11 @@ function SolicitudCard({ sol }: { sol: SolicitudResumen }) {
     const fecha = new Date(sol.created_at).toLocaleDateString('es-AR', {
         day: '2-digit', month: 'short', year: 'numeric',
     });
-
     return (
         <div className="bg-white rounded-xl border border-zinc-200 p-5 hover:border-red-200 hover:shadow-sm transition-all space-y-3">
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="font-semibold text-zinc-900 text-sm">
-                        Repuesto #{sol.numeroSolicitud}
-                    </p>
+                    <p className="font-semibold text-zinc-900 text-sm">Repuesto #{sol.numeroSolicitud}</p>
                     <p className="text-xs text-zinc-400 mt-0.5">{fecha}</p>
                 </div>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${ESTADO_COLORS[sol.estado] ?? 'bg-zinc-50 text-zinc-600 border-zinc-200'}`}>
@@ -43,9 +41,7 @@ function SolicitudCard({ sol }: { sol: SolicitudResumen }) {
             {(sol.maquina_tipo || sol.modelo) && (
                 <div className="pt-2 border-t border-zinc-100">
                     <p className="text-xs text-zinc-400 mb-0.5">Máquina</p>
-                    <p className="text-sm text-zinc-800">
-                        {[sol.maquina_tipo, sol.modelo].filter(Boolean).join(' / ')}
-                    </p>
+                    <p className="text-sm text-zinc-800">{[sol.maquina_tipo, sol.modelo].filter(Boolean).join(' / ')}</p>
                 </div>
             )}
             {sol.descripcion_repuesto && (
@@ -62,7 +58,6 @@ function SolicitudRow({ sol }: { sol: SolicitudResumen }) {
     const fecha = new Date(sol.created_at).toLocaleDateString('es-AR', {
         day: '2-digit', month: 'short', year: 'numeric',
     });
-
     return (
         <div className="bg-white rounded-xl border border-zinc-200 p-4 flex items-center gap-4 hover:border-red-200 transition-colors">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 flex-shrink-0">
@@ -108,9 +103,45 @@ const REPUESTOS_DEMO: SolicitudResumen[] = [
     },
 ];
 
+function NuevaSolicitudModal({ onClose, initialValues }: { onClose: () => void; initialValues: { nombre: string; email: string } }) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+                    <h2 className="font-bold text-zinc-900 text-lg">Nueva solicitud de repuesto</h2>
+                    <button
+                        onClick={onClose}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                    >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div className="px-6 py-5">
+                    <FormSolicitud
+                        initialValues={initialValues}
+                        initialTab="repuesto"
+                        hidePersonalData
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function RepuestosPage() {
+    const { user, firebaseUser } = useAuth();
     const { solicitudes, loading, error } = useMisSolicitudes();
     const [view, setView] = useState<ViewMode>('tarjetas');
+    const [showModal, setShowModal] = useState(false);
+
+    const nombre = user?.displayName || firebaseUser?.displayName || '';
+    const email = user?.email || firebaseUser?.email || '';
 
     const apiRepuestos = solicitudes.filter(s => s.tipo === 'repuesto');
     const repuestos = !loading && (error || apiRepuestos.length === 0) ? REPUESTOS_DEMO : apiRepuestos;
@@ -118,54 +149,45 @@ export default function RepuestosPage() {
 
     return (
         <div className="space-y-6">
+            {showModal && (
+                <NuevaSolicitudModal
+                    onClose={() => setShowModal(false)}
+                    initialValues={{ nombre, email }}
+                />
+            )}
+
             {/* Header */}
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-zinc-900">Solicitudes de Repuestos</h1>
-                    <p className="text-sm text-zinc-500 mt-1">
-                        Tus pedidos de repuestos y piezas
-                    </p>
+                    <p className="text-sm text-zinc-500 mt-1">Tus pedidos de repuestos y piezas</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex rounded-lg border border-zinc-200 overflow-hidden text-sm">
-                        <button
-                            onClick={() => setView('tarjetas')}
-                            className={`px-3 py-2 font-medium transition-colors ${view === 'tarjetas' ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
-                        >
-                            Tarjetas
-                        </button>
-                        <button
-                            onClick={() => setView('lista')}
-                            className={`px-3 py-2 font-medium transition-colors ${view === 'lista' ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
-                        >
-                            Lista
-                        </button>
+                        <button onClick={() => setView('tarjetas')} className={`px-3 py-2 font-medium transition-colors ${view === 'tarjetas' ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}>Tarjetas</button>
+                        <button onClick={() => setView('lista')} className={`px-3 py-2 font-medium transition-colors ${view === 'lista' ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}>Lista</button>
                     </div>
-                    <Link
-                        href="/nueva-solicitud?tipo=repuesto"
+                    <button
+                        onClick={() => setShowModal(true)}
                         className="flex items-center gap-2 bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-zinc-900 transition-colors"
                     >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                         Nueva solicitud
-                    </Link>
+                    </button>
                 </div>
             </div>
 
-            {/* Demo notice */}
             {isDemo && (
                 <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
                     Los siguientes son ejemplos. Tus solicitudes aparecerán aquí cuando las registres.
                 </div>
             )}
 
-            {/* Content */}
             {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="h-40 bg-zinc-100 rounded-xl animate-pulse" />
-                    ))}
+                    {[1, 2, 3].map(i => <div key={i} className="h-40 bg-zinc-100 rounded-xl animate-pulse" />)}
                 </div>
             ) : repuestos.length === 0 ? (
                 <div className="bg-white rounded-xl border border-zinc-200 p-12 text-center">
@@ -176,24 +198,20 @@ export default function RepuestosPage() {
                     </div>
                     <p className="font-medium text-zinc-600">No tenés solicitudes de repuestos</p>
                     <p className="text-sm text-zinc-400 mt-1">Cuando hagas una solicitud, aparecerá aquí.</p>
-                    <Link
-                        href="/nueva-solicitud?tipo=repuesto"
+                    <button
+                        onClick={() => setShowModal(true)}
                         className="mt-4 inline-flex items-center gap-2 bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-zinc-900 transition-colors"
                     >
                         Nueva solicitud de repuesto
-                    </Link>
+                    </button>
                 </div>
             ) : view === 'tarjetas' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {repuestos.map(sol => (
-                        <SolicitudCard key={sol.id} sol={sol} />
-                    ))}
+                    {repuestos.map(sol => <SolicitudCard key={sol.id} sol={sol} />)}
                 </div>
             ) : (
                 <div className="space-y-2">
-                    {repuestos.map(sol => (
-                        <SolicitudRow key={sol.id} sol={sol} />
-                    ))}
+                    {repuestos.map(sol => <SolicitudRow key={sol.id} sol={sol} />)}
                 </div>
             )}
         </div>

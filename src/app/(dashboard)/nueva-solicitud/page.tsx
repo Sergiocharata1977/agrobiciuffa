@@ -38,7 +38,7 @@ function NuevaSolicitudForm() {
     };
 
     return (
-        <div className="max-w-2xl space-y-6">
+        <div className="w-full space-y-6">
             <div>
                 <Link
                     href={backHref}

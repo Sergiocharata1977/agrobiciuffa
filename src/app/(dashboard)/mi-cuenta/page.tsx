@@ -66,7 +66,7 @@ export default function MiCuentaPage() {
     };
 
     return (
-        <div className="max-w-2xl space-y-6">
+        <div className="w-full space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-zinc-900">Mi Cuenta</h1>
                 <p className="text-zinc-500 text-sm mt-1">Tus datos personales y de facturación</p>

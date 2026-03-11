@@ -108,7 +108,7 @@ export default function MisSolicitudesPage() {
     });
 
     return (
-        <div className="max-w-3xl">
+        <div className="w-full">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-zinc-900">Mis Solicitudes</h1>
                 <p className="text-zinc-500 text-sm mt-1">Seguimiento de todas tus consultas a Agro Biciufa</p>

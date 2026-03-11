@@ -37,7 +37,7 @@ export default function DashboardPage() {
     const recientes = solicitudes.slice(0, 3);
 
     return (
-        <div className="max-w-3xl space-y-6">
+        <div className="w-full space-y-6">
             {/* Welcome */}
             <div className="bg-zinc-900 rounded-2xl p-6 text-white">
                 <p className="text-zinc-400 text-sm mb-1">Bienvenido</p>

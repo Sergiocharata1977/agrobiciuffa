@@ -1,15 +1,29 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Headphones, Loader2, Mic, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMisSolicitudes } from '@/hooks/useMisSolicitudes';
+import { useVoicePlayer } from '@/hooks/useVoicePlayer';
 
 type Message = {
     role: 'user' | 'assistant';
     content: string;
 };
 
-// Equipos de demo (en producción vendrían del backend)
+type SpeechRecognitionLike = {
+    lang: string;
+    continuous: boolean;
+    interimResults: boolean;
+    onstart: (() => void) | null;
+    onend: (() => void) | null;
+    onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+    start: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+// Equipos de demo (en produccion vendrian del backend)
 const EQUIPOS_DEMO = [
     { tipo: 'Tractor', marca: 'CASE IH', modelo: 'Puma 185', numero_serie: 'JBAH185EX6M123456', anio: 2019 },
     { tipo: 'Cosechadora', marca: 'CASE IH', modelo: 'Axial-Flow 8250', numero_serie: 'CAFE8250YP7A98765', anio: 2021 },
@@ -17,10 +31,10 @@ const EQUIPOS_DEMO = [
 ];
 
 const SUGERENCIAS = [
-    '¿Cómo solicito un repuesto?',
-    '¿Cuál es el estado de mis solicitudes?',
-    'Necesito servicio técnico para mi tractor',
-    '¿Qué mantenimiento preventivo se recomienda?',
+    'Como solicito un repuesto?',
+    'Cual es el estado de mis solicitudes?',
+    'Necesito servicio tecnico para mi tractor',
+    'Que mantenimiento preventivo se recomienda?',
 ];
 
 export default function AsistentePage() {
@@ -38,6 +52,11 @@ export default function AsistentePage() {
     const [started, setStarted] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const prevMsgLenRef = useRef(0);
+    const { speak, stop, isPlaying, isLoading: isAudioLoading } = useVoicePlayer();
+    const [playingId, setPlayingId] = useState<string | null>(null);
+    const [autoplay, setAutoplay] = useState(false);
+    const [listening, setListening] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     // Welcome message
@@ -45,7 +64,7 @@ export default function AsistentePage() {
         setMessages([
             {
                 role: 'assistant',
-                content: `¡Hola ${firstName}! Soy Don Mario IA 🤠, tu asistente del portal de Agro Biciufa.\n\nPuedo ayudarte con consultas sobre tus equipos CASE IH, el estado de tus solicitudes, repuestos, mantenimiento y más. ¿En qué te puedo ayudar hoy?`,
+                content: `Hola ${firstName}! Soy Don Mario IA, tu asistente del portal de Agro Biciufa.\n\nPuedo ayudarte con consultas sobre tus equipos CASE IH, el estado de tus solicitudes, repuestos, mantenimiento y mas. En que te puedo ayudar hoy?`,
             },
         ]);
     }, [firstName]);
@@ -56,6 +75,18 @@ export default function AsistentePage() {
         if (!el) return;
         el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
     }, [messages, sending]);
+
+    // Autoplay: reproducir respuesta del asistente automaticamente
+    useEffect(() => {
+        if (autoplay && messages.length > prevMsgLenRef.current) {
+            const last = messages[messages.length - 1];
+            if (last?.role === 'assistant') {
+                setPlayingId(`msg-${messages.length - 1}`);
+                void speak(last.content).finally(() => setPlayingId(null));
+            }
+        }
+        prevMsgLenRef.current = messages.length;
+    }, [messages, autoplay, speak]);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -120,6 +151,25 @@ export default function AsistentePage() {
         }
     };
 
+    const handleMic = () => {
+        const speechWindow = window as typeof window & {
+            SpeechRecognition?: SpeechRecognitionConstructor;
+            webkitSpeechRecognition?: SpeechRecognitionConstructor;
+        };
+        const SR = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+        if (!SR) return;
+        const recognition = new SR();
+        recognition.lang = 'es-AR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.onstart = () => setListening(true);
+        recognition.onend = () => setListening(false);
+        recognition.onresult = (event) => {
+            setDraft(event.results[0][0].transcript);
+        };
+        recognition.start();
+    };
+
     return (
         <div className="flex flex-col" style={{ height: 'calc(100vh - 5rem)' }}>
             {/* Header */}
@@ -134,18 +184,19 @@ export default function AsistentePage() {
                     <h1 className="font-bold text-zinc-900 text-lg leading-tight">Don Mario IA</h1>
                     <p className="text-xs text-zinc-500">Asistente de Agro Biciufa · CASE IH</p>
                 </div>
+                <button
+                    onClick={() => setAutoplay((v) => !v)}
+                    className={`ml-auto flex items-center justify-center h-8 w-8 rounded-full transition-colors ${autoplay ? 'bg-red-100 text-red-600' : 'text-zinc-400 hover:text-red-600 hover:bg-red-50'}`}
+                    title={autoplay ? 'Autoplay ON - click para desactivar' : 'Activar reproduccion automatica'}
+                >
+                    <Headphones className="w-4 h-4" />
+                </button>
             </div>
 
             {/* Messages */}
-            <div
-                ref={scrollRef}
-                className="flex-1 overflow-y-auto py-4 space-y-4 min-h-0"
-            >
+            <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-4 min-h-0">
                 {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {msg.role === 'assistant' && (
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white font-bold text-xs flex-shrink-0 mr-2 mt-1">
                                 DM
@@ -159,6 +210,31 @@ export default function AsistentePage() {
                             }`}
                         >
                             {msg.content}
+                            {msg.role === 'assistant' && (
+                                <button
+                                    onClick={() => {
+                                        const id = `msg-${i}`;
+                                        if (playingId === id) {
+                                            stop();
+                                            setPlayingId(null);
+                                        } else {
+                                            stop();
+                                            setPlayingId(id);
+                                            void speak(msg.content).finally(() => setPlayingId(null));
+                                        }
+                                    }}
+                                    className="mt-1.5 flex items-center gap-1 text-xs text-zinc-400 hover:text-red-600 transition-colors"
+                                    title={playingId === `msg-${i}` ? 'Detener' : 'Escuchar respuesta'}
+                                >
+                                    {isAudioLoading && playingId === `msg-${i}` ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : playingId === `msg-${i}` && isPlaying ? (
+                                        <VolumeX className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <Volume2 className="w-3.5 h-3.5" />
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -185,7 +261,7 @@ export default function AsistentePage() {
                 )}
             </div>
 
-            {/* Sugerencias rápidas (solo si no empezó) */}
+            {/* Sugerencias rapidas (solo si no empezo) */}
             {!started && (
                 <div className="pb-3 flex flex-wrap gap-2">
                     {SUGERENCIAS.map((s) => (
@@ -209,11 +285,20 @@ export default function AsistentePage() {
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={sending}
-                        placeholder="Escribí tu consulta... (Enter para enviar)"
+                        placeholder="Escribi tu consulta... (Enter para enviar)"
                         rows={1}
                         className="flex-1 resize-none rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors disabled:opacity-50 min-h-[46px]"
                         style={{ overflow: 'hidden' }}
                     />
+                    <button
+                        type="button"
+                        onClick={handleMic}
+                        disabled={sending}
+                        className={`flex h-[46px] w-[46px] items-center justify-center rounded-xl transition-colors flex-shrink-0 ${listening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-zinc-100 text-zinc-500 hover:bg-red-50 hover:text-red-600'} disabled:opacity-40`}
+                        title={listening ? 'Escuchando...' : 'Dictado por voz'}
+                    >
+                        <Mic className="h-5 w-5" />
+                    </button>
                     <button
                         onClick={() => void sendMessage(draft.trim())}
                         disabled={!draft.trim() || sending}
@@ -225,7 +310,7 @@ export default function AsistentePage() {
                     </button>
                 </div>
                 <p className="text-xs text-zinc-400 mt-2 text-center">
-                    Don Mario IA puede cometer errores. Para info crítica consultá al equipo de Agro Biciufa.
+                    Don Mario IA puede cometer errores. Para info critica consulta al equipo de Agro Biciufa.
                 </p>
             </div>
         </div>

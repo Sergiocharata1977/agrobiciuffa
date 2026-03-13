@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { DonCandidoAvatar } from '@/components/ui/DonCandidoAvatar';
 import { Input } from '@/components/ui/input';
 import type { ChatMessage } from '@/types/chat';
-import { Loader2, Send, X } from 'lucide-react';
+import { Headphones, Loader2, Send, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useVoicePlayer } from '@/hooks/useVoicePlayer';
 
 interface ChatWindowProps {
     onClose: () => void;
@@ -24,6 +25,11 @@ export function ChatWindow({
         () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const prevMsgLenRef = useRef(0);
+
+    const { speak, stop, isPlaying, isLoading: isAudioLoading } = useVoicePlayer();
+    const [playingId, setPlayingId] = useState<string | null>(null);
+    const [autoplay, setAutoplay] = useState(false);
 
     const positionClasses = {
         'bottom-right': 'bottom-6 right-6',
@@ -46,6 +52,18 @@ export function ChatWindow({
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    // Autoplay: reproducir respuesta del asistente automáticamente
+    useEffect(() => {
+        if (autoplay && messages.length > prevMsgLenRef.current) {
+            const last = messages[messages.length - 1];
+            if (last?.role === 'assistant') {
+                setPlayingId(last.id);
+                speak(last.content).then(() => setPlayingId(null));
+            }
+        }
+        prevMsgLenRef.current = messages.length;
+    }, [messages, autoplay, speak]);
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
@@ -123,15 +141,27 @@ export function ChatWindow({
                         <p className="text-xs text-red-100 font-medium">Experto en Case IH</p>
                     </div>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClose}
-                    className="text-white hover:bg-white/20"
-                    aria-label="Cerrar chat"
-                >
-                    <X className="w-5 h-5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setAutoplay(v => !v)}
+                        className={`text-white hover:bg-white/20 ${autoplay ? 'bg-white/20' : ''}`}
+                        aria-label={autoplay ? 'Desactivar autoplay' : 'Activar autoplay de voz'}
+                        title={autoplay ? 'Autoplay ON — click para desactivar' : 'Activar reproducción automática'}
+                    >
+                        <Headphones className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onClose}
+                        className="text-white hover:bg-white/20"
+                        aria-label="Cerrar chat"
+                    >
+                        <X className="w-5 h-5" />
+                    </Button>
+                </div>
             </div>
 
             {/* Messages */}
@@ -153,6 +183,30 @@ export function ChatWindow({
                                 }`}
                         >
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                            {message.role === 'assistant' && (
+                                <button
+                                    onClick={() => {
+                                        if (playingId === message.id) {
+                                            stop();
+                                            setPlayingId(null);
+                                        } else {
+                                            stop();
+                                            setPlayingId(message.id);
+                                            speak(message.content).then(() => setPlayingId(null));
+                                        }
+                                    }}
+                                    className="mt-1.5 flex items-center gap-1 text-xs text-zinc-400 hover:text-red-600 transition-colors"
+                                    title={playingId === message.id ? 'Detener' : 'Escuchar respuesta'}
+                                >
+                                    {isAudioLoading && playingId === message.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : playingId === message.id && isPlaying ? (
+                                        <VolumeX className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <Volume2 className="w-3.5 h-3.5" />
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

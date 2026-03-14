@@ -1,9 +1,13 @@
 # Cierre Plan 52 — Web Institucional Agrobiciufa + Chat Don Mario IA
 
 **Fecha:** 2026-03-14
-**Estado:** ✅ COMPLETADO Y PUSHEADO
-**Commit:** `2901ed7` — branch `main` → `github.com/Sergiocharata1977/agrobiciuffa`
+**Estado:** ✅ COMPLETADO, BUILD LOCAL OK, PUSHEADO
+**Commits:**
+- `2901ed7` — feat principal: web institucional + Don Mario IA
+- `fc36256` — fix: conflicto de ruta /repuestos (dashboard vs público)
+- `bf6684b` — fix: errores de prerenderizado estático en Vercel
 **Plan de referencia:** `reports/52_PLAN_WEB_INSTITUCIONAL_CHAT_DON_MARIO.md`
+**Build local:** ✅ `npm run build` OK
 **TypeScript:** ✅ `tsc --noEmit` sin errores
 
 ---
@@ -109,6 +113,28 @@ description: 'Concesionario oficial CASE IH en Argentina. Venta de maquinaria ag
 keywords: ['CASE IH', 'maquinaria agrícola', 'tractores', 'cosechadoras', ...]
 openGraph: { locale: 'es_AR', siteName: 'Agro Biciuffa SRL' }
 ```
+
+---
+
+## Fixes post-deploy (commits fc36256 y bf6684b)
+
+### Fix 1 — Conflicto de ruta `/repuestos`
+Next.js no permite que dos route groups resuelvan al mismo path URL.
+`(dashboard)/repuestos` y `(public)/repuestos` ambos → `/repuestos`.
+
+| Acción | Detalle |
+|--------|---------|
+| Renombrar | `(dashboard)/repuestos` → `(dashboard)/mis-repuestos` |
+| Nav dashboard | `href: '/repuestos'` → `href: '/mis-repuestos'` |
+| PublicSiteShell | Agregar `/mis-repuestos` a PRIVATE_EXACT_PATHS |
+
+### Fix 2 — Errores de prerenderizado estático (Vercel)
+
+| Archivo | Error | Fix |
+|---------|-------|-----|
+| `/contacto/page.tsx` | `useSearchParams()` sin Suspense → bailout de static gen | Envuelto en `<Suspense>` |
+| `/novedades/page.tsx` | Firebase Admin en build time → falla en prerenderizado | `export const dynamic = 'force-dynamic'` |
+| `/api/public/novedades/route.ts` | Firebase Admin en edge + `request.url` en build | `dynamic = 'force-dynamic'` + `request.nextUrl.searchParams` |
 
 ---
 

@@ -34,10 +34,49 @@ CAPACIDADES:
 - Guiar al cliente para que complete sus solicitudes desde el portal
 
 LIMITACIONES:
-- No des precios concretos ni disponibilidad de stock (derivá al equipo comercial)
+- Los precios que conozcas son ORIENTATIVOS para demo — siempre aclarás que el precio final lo confirma el equipo comercial
+- Podés mencionar precios aproximados cuando el cliente pregunta, aclarando que pueden variar
 - No inventés datos técnicos específicos que no sepas con certeza
 - Para urgencias mecánicas críticas, recomendá llamar directamente al concesionario
-- No tenés acceso en tiempo real a inventario ni sistemas internos`;
+- No tenés acceso en tiempo real a inventario ni sistemas internos
+
+CATÁLOGO DE EQUIPOS DISPONIBLES (precios orientativos USD, pueden variar):
+• Tractor CASE IH Farmall 75C 2024 — desde USD 68.000 (75hp, ideal para tareas diversas)
+• Tractor CASE IH Maxxum 145 2024 — desde USD 142.000 (145hp, CVXDrive continua)
+• Tractor CASE IH Puma 185 2024 — desde USD 185.000 (185hp, AFS Connect telemetría)
+• Tractor CASE IH Puma 240 2024 — desde USD 220.000 (240hp, máxima potencia línea Puma)
+• Cosechadora CASE IH Axial-Flow 7250 2024 — desde USD 390.000 (rotor único, 45t/h)
+• Cosechadora CASE IH Axial-Flow 8250 2024 — desde USD 520.000 (la más productiva, tanque 14.100L)
+• Pulverizadora CASE IH Patriot 250 2024 — desde USD 210.000 (barra 36m, AFS AccuGuide)
+
+FINANCIACIÓN CNH CAPITAL (tasas vigentes aproximadas, consultar condiciones actualizadas):
+• Plan Clásico: 12 cuotas, 45% TNA, anticipo mínimo 30%
+• Plan Extendido: 24 cuotas, 52% TNA, anticipo mínimo 20% — el más elegido
+• Plan Harvest: 36 cuotas, 58% TNA, anticipo mínimo 15% — para cosechadoras
+• Leasing Agrícola: 48 cuotas, 60% TNA, anticipo mínimo 10% — mayor plazo
+
+REPUESTOS FRECUENTES CASE IH (precios orientativos USD por unidad):
+• Filtro aceite motor (p/n 84229862) — ~USD 45 — Puma, Maxxum, Farmall
+• Filtro hidráulico (p/n 87802885) — ~USD 38 — Puma, Maxxum, Axial-Flow
+• Kit correas variador Axial-Flow (p/n 1995311C1) — ~USD 890 — Axial-Flow 8240/8250
+• Filtro combustible (p/n 84282743) — ~USD 22 — Farmall, Maxxum
+• Pastilla difusora TeeJet 11004 (p/n 382109A1) — ~USD 180 pack x20 — Patriot 250
+• Aceite hidráulico Akcela (p/n 84224053) — ~USD 95 bidón 20L — todos los modelos
+
+SERVICIOS TÉCNICOS DISPONIBLES:
+• Service 250hs — 4-6 horas — cambio aceite, filtros, revisión general
+• Service 500hs — 1 día — incluye transmisión e hidráulico
+• Service 1000hs — 2-3 días — service mayor con calibración AFS
+• Diagnóstico electrónico AFS — 1-2 horas — lectura de códigos de falla
+• Taller de campaña — técnico va al campo, disponible 24hs en temporada
+• Gestión de garantías CASE IH — sin costo para el cliente dentro del período
+
+DATOS DE CONTACTO AGRO BICIUFA:
+• Teléfono: +54 11 4700-0000
+• WhatsApp: +54 9 11 7000-0000
+• Email: info@agrobiciufa.com.ar
+• Horario: Lunes a Viernes 8:00-18:00 / Sábados 8:00-13:00
+• Regiones: Buenos Aires, Entre Ríos, Santa Fe`;
 
 function buildSystemPrompt(context: {
     nombre?: string;

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { CATALOGO_EQUIPOS, type EquipoCatalogo, type EstadoStock } from '@/data/catalogo';
+import { PLANES_FINANCIACION } from '@/data/financiacion';
 
 type ViewMode = 'tarjetas' | 'lista';
 
@@ -114,6 +116,52 @@ function EquipoCard({ equipo }: { equipo: Equipo }) {
     );
 }
 
+const STOCK_COLORS: Record<EstadoStock, string> = {
+    'Disponible': 'bg-green-50 text-green-700 border-green-200',
+    'Consultar': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'Bajo pedido': 'bg-zinc-50 text-zinc-600 border-zinc-200',
+};
+
+function CatalogoCard({ equipo }: { equipo: EquipoCatalogo }) {
+    return (
+        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-red-200 hover:shadow-md transition-all">
+            <div className="relative h-48 bg-zinc-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={equipo.imagen}
+                    alt={`${equipo.marca} ${equipo.modelo}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <span className={`absolute top-3 right-3 text-xs font-medium px-2.5 py-1 rounded-full border backdrop-blur-sm ${STOCK_COLORS[equipo.estado_stock]}`}>
+                    {equipo.estado_stock}
+                </span>
+            </div>
+            <div className="p-5 space-y-3">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-xl flex-shrink-0">
+                        {TIPO_ICON[equipo.tipo] ?? '⚙️'}
+                    </div>
+                    <div>
+                        <p className="font-semibold text-zinc-900">{equipo.marca} {equipo.modelo}</p>
+                        <p className="text-sm text-zinc-500">{equipo.tipo} · {equipo.anio}{equipo.potencia_hp ? ` · ${equipo.potencia_hp}hp` : ''}</p>
+                    </div>
+                </div>
+                <p className="text-xs text-zinc-500 leading-relaxed">{equipo.descripcion}</p>
+                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                    <p className="text-sm font-bold text-zinc-900">desde USD {equipo.precio_usd.toLocaleString('es-AR')}</p>
+                </div>
+                <Link
+                    href={`/nueva-solicitud?tipo=comercial&modelo=${equipo.modelo}`}
+                    className="block text-center text-xs font-semibold py-2 rounded-lg bg-red-600 text-white hover:bg-zinc-900 transition-colors"
+                >
+                    Cotizar este equipo
+                </Link>
+            </div>
+        </div>
+    );
+}
+
 function EquipoRow({ equipo }: { equipo: Equipo }) {
     return (
         <div className="bg-white rounded-xl border border-zinc-200 p-4 flex items-center gap-4 hover:border-red-200 transition-colors">
@@ -216,6 +264,37 @@ export default function ProductosPage() {
                     ))}
                 </div>
             )}
+
+            {/* Catálogo a la venta */}
+            <div className="pt-6 border-t border-zinc-200">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-zinc-900">Equipos disponibles</h2>
+                        <p className="text-sm text-zinc-500 mt-0.5">
+                            Catálogo CASE IH — precios orientativos, consultar condiciones actualizadas
+                        </p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {CATALOGO_EQUIPOS.map(equipo => (
+                        <CatalogoCard key={equipo.id} equipo={equipo} />
+                    ))}
+                </div>
+                {/* Financiación */}
+                <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 p-5">
+                    <h3 className="font-semibold text-zinc-900 mb-3">Planes de financiación CNH Capital</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {PLANES_FINANCIACION.map(plan => (
+                            <div key={plan.id} className="bg-white rounded-lg border border-zinc-200 p-3">
+                                <p className="font-semibold text-zinc-900 text-sm">{plan.nombre}</p>
+                                <p className="text-xs text-zinc-500 mt-0.5">{plan.cuotas} cuotas · {plan.tna}% TNA</p>
+                                <p className="text-xs text-zinc-400">Anticipo {plan.anticipo_pct}%</p>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-3">Tasas orientativas para demo. Consultar condiciones vigentes con el equipo comercial.</p>
+                </div>
+            </div>
         </div>
     );
 }

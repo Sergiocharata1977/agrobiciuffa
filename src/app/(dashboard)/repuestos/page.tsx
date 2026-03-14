@@ -1,9 +1,14 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMisSolicitudes, type SolicitudResumen } from '@/hooks/useMisSolicitudes';
 import { FormSolicitud } from '@/components/forms/FormSolicitud';
+import {
+    getRepuestosPorCategoria,
+    type RepuestoFrecuente,
+} from '@/data/repuestos-frecuentes';
 
 type ViewMode = 'tarjetas' | 'lista';
 
@@ -22,6 +27,79 @@ const ESTADO_COLORS: Record<string, string> = {
     cerrada: 'bg-green-50 text-green-700 border-green-200',
     cancelada: 'bg-red-50 text-red-700 border-red-200',
 };
+
+const CATEGORIA_BADGE_COLORS: Record<RepuestoFrecuente['categoria'], string> = {
+    Filtros: 'bg-blue-50 text-blue-700 border-blue-200',
+    'Correas y Transmisión': 'bg-amber-50 text-amber-700 border-amber-200',
+    Lubricantes: 'bg-green-50 text-green-700 border-green-200',
+    Sensores: 'bg-purple-50 text-purple-700 border-purple-200',
+    Pulverización: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+};
+
+function RepuestoRow({ item, mobile = false }: { item: RepuestoFrecuente; mobile?: boolean }) {
+    const href = `/nueva-solicitud?tipo=repuesto&repuesto=${encodeURIComponent(item.part_number)}&desc=${encodeURIComponent(item.descripcion)}`;
+
+    if (mobile) {
+        return (
+            <div className="px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs font-semibold text-zinc-800">
+                                {item.part_number}
+                            </code>
+                            <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${CATEGORIA_BADGE_COLORS[item.categoria]}`}>
+                                {item.categoria}
+                            </span>
+                        </div>
+                        <p className="mt-1 text-sm font-medium text-zinc-900">{item.descripcion}</p>
+                        <p className="mt-1 line-clamp-1 text-xs text-zinc-500">{item.compatibilidad}</p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                            ~USD {item.precio_usd_ref} · {item.unidad}
+                        </p>
+                    </div>
+                    <Link
+                        href={href}
+                        className="inline-flex rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:border-red-200 hover:text-red-600"
+                    >
+                        Solicitar
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <tr className="border-t border-zinc-100">
+            <td className="px-4 py-3 align-top">
+                <div className="space-y-1">
+                    <code className="text-xs font-semibold text-zinc-800">{item.part_number}</code>
+                    <div>
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${CATEGORIA_BADGE_COLORS[item.categoria]}`}>
+                            {item.categoria}
+                        </span>
+                    </div>
+                </div>
+            </td>
+            <td className="px-4 py-3 align-top text-sm font-medium text-zinc-900">{item.descripcion}</td>
+            <td className="px-4 py-3 align-top text-sm text-zinc-500">
+                <p className="max-w-xs truncate">{item.compatibilidad}</p>
+            </td>
+            <td className="px-4 py-3 align-top text-sm text-zinc-600">
+                ~USD {item.precio_usd_ref}
+                <span className="text-zinc-400"> / {item.unidad}</span>
+            </td>
+            <td className="px-4 py-3 align-top">
+                <Link
+                    href={href}
+                    className="inline-flex rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:border-red-200 hover:text-red-600"
+                >
+                    Solicitar
+                </Link>
+            </td>
+        </tr>
+    );
+}
 
 function SolicitudCard({ sol }: { sol: SolicitudResumen }) {
     const fecha = new Date(sol.created_at).toLocaleDateString('es-AR', {
@@ -146,6 +224,7 @@ export default function RepuestosPage() {
     const apiRepuestos = solicitudes.filter(s => s.tipo === 'repuesto');
     const repuestos = !loading && (error || apiRepuestos.length === 0) ? REPUESTOS_DEMO : apiRepuestos;
     const isDemo = !loading && (error || apiRepuestos.length === 0);
+    const repuestosFrecuentes = Object.values(getRepuestosPorCategoria()).flat();
 
     return (
         <div className="space-y-6">
@@ -214,6 +293,47 @@ export default function RepuestosPage() {
                     {repuestos.map(sol => <SolicitudRow key={sol.id} sol={sol} />)}
                 </div>
             )}
+
+            {/* Repuestos frecuentes */}
+            <div className="border-t border-zinc-200 pt-6">
+                <div className="mb-4">
+                    <h2 className="text-lg font-bold text-zinc-900">Repuestos frecuentes CASE IH</h2>
+                    <p className="mt-0.5 text-sm text-zinc-500">
+                        Referencia rápida de part numbers y precios orientativos
+                    </p>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                    <div className="hidden md:block">
+                        <table className="min-w-full divide-y divide-zinc-200">
+                            <thead className="bg-zinc-50">
+                                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                                    <th className="px-4 py-3">Part Number</th>
+                                    <th className="px-4 py-3">Descripción</th>
+                                    <th className="px-4 py-3">Compatibilidad</th>
+                                    <th className="px-4 py-3">Precio ref.</th>
+                                    <th className="px-4 py-3">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {repuestosFrecuentes.map(item => (
+                                    <RepuestoRow key={item.id} item={item} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="divide-y divide-zinc-100 md:hidden">
+                        {repuestosFrecuentes.map(item => (
+                            <RepuestoRow key={item.id} item={item} mobile />
+                        ))}
+                    </div>
+                </div>
+
+                <p className="mt-2 text-xs text-zinc-400">
+                    Precios orientativos para demo. Disponibilidad y precio final sujetos a stock.
+                </p>
+            </div>
         </div>
     );
 }

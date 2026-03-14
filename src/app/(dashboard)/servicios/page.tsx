@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useMisSolicitudes, type SolicitudResumen } from '@/hooks/useMisSolicitudes';
 import { FormSolicitud } from '@/components/forms/FormSolicitud';
+import { useAuth } from '@/contexts/AuthContext';
+import { SERVICIOS_TECNICOS, type ServicioTecnico } from '@/data/empresa';
+import { useMisSolicitudes, type SolicitudResumen } from '@/hooks/useMisSolicitudes';
 
 type ViewMode = 'tarjetas' | 'lista';
 
@@ -22,6 +23,44 @@ const ESTADO_COLORS: Record<string, string> = {
     cerrada: 'bg-green-50 text-green-700 border-green-200',
     cancelada: 'bg-red-50 text-red-700 border-red-200',
 };
+
+function ServicioCard({ servicio, onSolicitar }: { servicio: ServicioTecnico; onSolicitar: () => void }) {
+    return (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-2xl">
+                    <span aria-hidden="true">{servicio.icono}</span>
+                </div>
+                <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600">
+                    {servicio.tiempo_estimado}
+                </span>
+            </div>
+
+            <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-zinc-900">{servicio.nombre}</h2>
+                <p className="text-sm leading-6 text-zinc-600">{servicio.descripcion}</p>
+            </div>
+
+            {servicio.incluye && servicio.incluye.length > 0 && (
+                <ul className="space-y-2">
+                    {servicio.incluye.map((item) => (
+                        <li key={item} className="flex items-start gap-2 text-sm text-zinc-700">
+                            <span className="mt-0.5 text-green-600" aria-hidden="true">✓</span>
+                            <span>{item}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            <button
+                onClick={onSolicitar}
+                className="inline-flex items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50"
+            >
+                Solicitar este servicio
+            </button>
+        </div>
+    );
+}
 
 function SolicitudCard({ sol }: { sol: SolicitudResumen }) {
     const fecha = new Date(sol.created_at).toLocaleDateString('es-AR', {
@@ -185,6 +224,26 @@ export default function ServiciosPage() {
                         </svg>
                         Nueva solicitud
                     </button>
+                </div>
+            </div>
+
+            {/* Servicios disponibles */}
+            <div className="space-y-4">
+                <div>
+                    <h2 className="text-lg font-semibold text-zinc-900">Nuestros servicios</h2>
+                    <p className="mt-1 text-sm text-zinc-500">Paquetes de mantenimiento y asistencia técnica disponibles para tu equipo.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {SERVICIOS_TECNICOS.map(srv => (
+                        <ServicioCard key={srv.id} servicio={srv} onSolicitar={() => setShowModal(true)} />
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
+                    <span className="h-px flex-1 bg-zinc-200" />
+                    <span>Tus solicitudes de servicio</span>
+                    <span className="h-px flex-1 bg-zinc-200" />
                 </div>
             </div>
 

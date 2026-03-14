@@ -50,3 +50,24 @@ export interface RegisterFormData {
 export interface ResetPasswordFormData {
     email: string;
 }
+
+export type UserRole = 'cliente' | 'mecanico' | 'repuestero' | 'admin';
+
+export interface UserClaims {
+    role: UserRole;
+    organizationId?: string;
+}
+
+export interface AuthUser {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    role: UserRole;
+}
+
+export interface DecodedToken {
+    uid: string;
+    email?: string;
+    name?: string;
+    claims: UserClaims;
+}

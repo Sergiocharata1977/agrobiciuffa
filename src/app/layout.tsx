@@ -1,21 +1,39 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+import { PublicSiteShell } from '@/components/layout/PublicSiteShell';
+
+import './globals.css';
 
 export const metadata: Metadata = {
     title: {
-        default: process.env.NEXT_PUBLIC_APP_NAME || 'Proyecto Base',
-        template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || 'Proyecto Base'}`,
+        default: 'Agro Biciuffa SRL — Concesionario Oficial CASE IH',
+        template: '%s | Agro Biciuffa SRL',
     },
-    description: 'Aplicación multi-tenant con Next.js y Firebase',
-    keywords: ['next.js', 'firebase', 'multi-tenant', 'saas'],
-    authors: [{ name: 'Tu Empresa' }],
-    creator: 'Tu Empresa',
+    description:
+        'Concesionario oficial CASE IH en Argentina. Venta de maquinaria agrícola, repuestos originales y servicio técnico especializado. Acompañamos al productor antes, durante y después de la compra.',
+    keywords: [
+        'CASE IH',
+        'maquinaria agrícola',
+        'tractores',
+        'cosechadoras',
+        'repuestos agrícolas',
+        'servicio técnico agrícola',
+        'concesionario CASE IH Argentina',
+        'Agro Biciuffa',
+    ],
+    authors: [{ name: 'Agro Biciuffa SRL' }],
+    creator: 'Agro Biciuffa SRL',
     robots: {
         index: true,
         follow: true,
+    },
+    openGraph: {
+        type: 'website',
+        locale: 'es_AR',
+        siteName: 'Agro Biciuffa SRL',
+        title: 'Agro Biciuffa SRL — Concesionario Oficial CASE IH',
+        description:
+            'Maquinaria agrícola, repuestos originales y servicio técnico CASE IH. Concesionario oficial en Argentina.',
     },
 };
 
@@ -26,8 +44,11 @@ export default function RootLayout({
 }) {
     return (
         <html lang="es" suppressHydrationWarning>
-            <body className={inter.className}>
-                {children}
+            <body
+                className="bg-white text-zinc-900 antialiased"
+                style={{ fontFamily: "Arial, 'Helvetica Neue', sans-serif" }}
+            >
+                <PublicSiteShell>{children}</PublicSiteShell>
             </body>
         </html>
     );

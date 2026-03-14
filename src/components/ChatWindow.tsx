@@ -1,28 +1,35 @@
 // ChatWindow - Ventana de chat expandida
 'use client';
 
+import { Headphones, Loader2, Send, Volume2, VolumeX, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import { DonMarioAcciones } from '@/components/donmario/DonMarioAcciones';
 import { Button } from '@/components/ui/button';
 import { DonCandidoAvatar } from '@/components/ui/DonCandidoAvatar';
 import { Input } from '@/components/ui/input';
-import type { ChatMessage } from '@/types/chat';
-import { Headphones, Loader2, Send, Volume2, VolumeX, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { useVoicePlayer } from '@/hooks/useVoicePlayer';
+import type { ChatMessage } from '@/types/chat';
+import type { DonMarioAccion, DonMarioRequest, DonMarioResponse } from '@/types/donmario';
 
 interface ChatWindowProps {
     onClose: () => void;
     position?: 'bottom-right' | 'bottom-left';
 }
 
+interface ChatWindowMessage extends ChatMessage {
+    acciones?: DonMarioAccion[];
+}
+
 export function ChatWindow({
     onClose,
     position = 'bottom-right',
 }: ChatWindowProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatWindowMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [sessionId] = useState(
-        () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const [sessionId, setSessionId] = useState(
+        () => `session_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const prevMsgLenRef = useRef(0);
@@ -36,24 +43,21 @@ export function ChatWindow({
         'bottom-left': 'bottom-6 left-6',
     };
 
-    // Mensaje de bienvenida inicial
     useEffect(() => {
-        const welcomeMessage: ChatMessage = {
+        const welcomeMessage: ChatWindowMessage = {
             id: 'welcome',
             role: 'assistant',
             content:
-                '¡Hola! 👋 Soy el asistente virtual de Agro Biciuffa SRL. ¿En qué maquina o servicio te puedo ayudar hoy?',
+                '¡Hola! Soy el asistente virtual de Agro Biciuffa SRL. ¿En qué máquina o servicio te puedo ayudar hoy?',
             timestamp: new Date(),
         };
         setMessages([welcomeMessage]);
     }, []);
 
-    // Auto-scroll al último mensaje
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Autoplay: reproducir respuesta del asistente automáticamente
     useEffect(() => {
         if (autoplay && messages.length > prevMsgLenRef.current) {
             const last = messages[messages.length - 1];
@@ -66,54 +70,62 @@ export function ChatWindow({
     }, [messages, autoplay, speak]);
 
     const handleSend = async () => {
-        if (!input.trim() || isLoading) return;
+        const trimmedInput = input.trim();
+        if (!trimmedInput || isLoading) return;
 
-        const userMessage: ChatMessage = {
+        const userMessage: ChatWindowMessage = {
             id: `user_${Date.now()}`,
             role: 'user',
-            content: input.trim(),
+            content: trimmedInput,
             timestamp: new Date(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        const history: DonMarioRequest['history'] = messages.map(({ role, content }) => ({
+            role,
+            content,
+        }));
+
+        setMessages((prev) => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/chat', {
+            const response = await fetch('/api/chat/don-mario', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: input.trim(),
-                    sessionId,
-                    chatHistory: messages,
-                }),
+                    message: trimmedInput,
+                    session_id: sessionId,
+                    history,
+                } satisfies DonMarioRequest),
             });
 
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || 'Error al procesar mensaje');
+            if (!response.ok) {
+                throw new Error('Error al procesar mensaje');
             }
 
-            const assistantMessage: ChatMessage = {
+            const data: DonMarioResponse = await response.json();
+            setSessionId(data.session_id || sessionId);
+
+            const assistantMessage: ChatWindowMessage = {
                 id: `assistant_${Date.now()}`,
                 role: 'assistant',
                 content: data.reply,
                 timestamp: new Date(),
+                acciones: data.acciones,
             };
 
-            setMessages(prev => [...prev, assistantMessage]);
-        } catch (error: any) {
+            setMessages((prev) => [...prev, assistantMessage]);
+        } catch (error: unknown) {
             console.error('Error sending message:', error);
-            const errorMessage: ChatMessage = {
+            const errorMessage: ChatWindowMessage = {
                 id: `error_${Date.now()}`,
                 role: 'assistant',
                 content:
                     'Lo siento, hubo un error al comunicar con el servidor. ¿Podrías intentarlo de nuevo?',
                 timestamp: new Date(),
             };
-            setMessages(prev => [...prev, errorMessage]);
+            setMessages((prev) => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
         }
@@ -122,7 +134,7 @@ export function ChatWindow({
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSend();
+            void handleSend();
         }
     };
 
@@ -130,7 +142,6 @@ export function ChatWindow({
         <div
             className={`fixed ${positionClasses[position]} z-50 w-[400px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-100px)] bg-white rounded-2xl shadow-xl border border-zinc-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}
         >
-            {/* Header */}
             <div className="bg-red-600 text-white p-4 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -145,10 +156,10 @@ export function ChatWindow({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setAutoplay(v => !v)}
+                        onClick={() => setAutoplay((v) => !v)}
                         className={`text-white hover:bg-white/20 ${autoplay ? 'bg-white/20' : ''}`}
                         aria-label={autoplay ? 'Desactivar autoplay' : 'Activar autoplay de voz'}
-                        title={autoplay ? 'Autoplay ON — click para desactivar' : 'Activar reproducción automática'}
+                        title={autoplay ? 'Autoplay ON - click para desactivar' : 'Activar reproducción automática'}
                     >
                         <Headphones className="w-4 h-4" />
                     </Button>
@@ -164,9 +175,8 @@ export function ChatWindow({
                 </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4">
-                {messages.map(message => (
+                {messages.map((message) => (
                     <div
                         key={message.id}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} gap-2`}
@@ -177,10 +187,11 @@ export function ChatWindow({
                             </div>
                         )}
                         <div
-                            className={`max-w-[80%] rounded-xl px-4 py-2.5 ${message.role === 'user'
+                            className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
+                                message.role === 'user'
                                     ? 'bg-red-600 text-white rounded-br-sm'
                                     : 'bg-white border border-slate-200 text-zinc-800 rounded-bl-sm shadow-sm'
-                                }`}
+                            }`}
                         >
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                             {message.role === 'assistant' && (
@@ -207,11 +218,13 @@ export function ChatWindow({
                                     )}
                                 </button>
                             )}
+                            {message.role === 'assistant' && message.acciones && (
+                                <DonMarioAcciones acciones={message.acciones} />
+                            )}
                         </div>
                     </div>
                 ))}
 
-                {/* Typing indicator */}
                 {isLoading && (
                     <div className="flex justify-start gap-2">
                         <div className="w-8 h-8 flex-shrink-0 bg-red-100 rounded-full flex items-center justify-center">
@@ -230,12 +243,11 @@ export function ChatWindow({
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="p-4 bg-white border-t border-slate-200">
                 <div className="flex gap-2 items-center">
                     <Input
                         value={input}
-                        onChange={e => setInput(e.target.value)}
+                        onChange={(e) => setInput(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Pregunta sobre maquinaria..."
                         className="flex-1 rounded-full border-slate-300 focus:border-red-500 focus:ring-red-500"
@@ -243,7 +255,7 @@ export function ChatWindow({
                         aria-label="Escribe tu mensaje aquí"
                     />
                     <Button
-                        onClick={handleSend}
+                        onClick={() => void handleSend()}
                         disabled={!input.trim() || isLoading}
                         size="icon"
                         className="rounded-full bg-red-600 hover:bg-red-700 text-white flex-shrink-0 shadow-sm"

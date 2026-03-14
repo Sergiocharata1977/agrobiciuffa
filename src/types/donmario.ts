@@ -3,6 +3,17 @@ export interface DonMarioAccion {
     href: string;
 }
 
+export interface DonMarioMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+export interface DonMarioRequest {
+    message: string;
+    session_id: string;
+    history: DonMarioMessage[];
+}
+
 export interface ChatContextEquipo {
     marca: string;
     modelo: string;

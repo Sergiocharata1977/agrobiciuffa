@@ -15,7 +15,7 @@ const TIPO_LABELS: Record<string, string> = {
 const TIPO_BACK: Record<string, string> = {
     repuesto: '/repuestos',
     servicio: '/servicios',
-    comercial: '/productos',
+    comercial: '/mis-equipos',
 };
 
 function NuevaSolicitudForm() {

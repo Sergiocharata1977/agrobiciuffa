@@ -4,3 +4,5 @@ export { PageHeader } from './PageHeader';
 export { LoadingSpinner, PageLoading } from './LoadingSpinner';
 export { Alert } from './Alert';
 export { EmptyState, NotFound } from './EmptyState';
+export { NavbarInstitucional } from './NavbarInstitucional';
+export { FooterInstitucional } from './FooterInstitucional';

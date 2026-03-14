@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -94,8 +94,8 @@ function validateForm(values: FormContacto): FormErrors {
     return errors;
 }
 
-export default function ContactoPage() {
-    const searchParams = useSearchParams();
+function ContactoPageContent({ areaParam }: { areaParam: string | null }) {
+    const normalizedAreaParam = normalizeAreaParam(areaParam);
     const [formData, setFormData] = useState<FormContacto>(emptyForm);
     const [errors, setErrors] = useState<FormErrors>({});
     const [successMessage, setSuccessMessage] = useState('Gracias. Te contactamos pronto.');
@@ -105,10 +105,8 @@ export default function ContactoPage() {
     }, []);
 
     useEffect(() => {
-        const areaFromQuery = normalizeAreaParam(searchParams.get('area'));
-
-        if (areaFromQuery) {
-            setFormData((current) => ({ ...current, area: areaFromQuery }));
+        if (normalizedAreaParam) {
+            setFormData((current) => ({ ...current, area: normalizedAreaParam }));
             setErrors((current) => {
                 if (!current.area) {
                     return current;
@@ -119,7 +117,7 @@ export default function ContactoPage() {
                 return nextErrors;
             });
         }
-    }, [searchParams]);
+    }, [normalizedAreaParam]);
 
     const handleChange =
         (field: keyof FormContacto) =>
@@ -419,5 +417,19 @@ export default function ContactoPage() {
                 </div>
             </section>
         </>
+    );
+}
+
+function ContactoPageWithSearchParams() {
+    const searchParams = useSearchParams();
+
+    return <ContactoPageContent areaParam={searchParams.get('area')} />;
+}
+
+export default function ContactoPage() {
+    return (
+        <Suspense fallback={<ContactoPageContent areaParam={null} />}>
+            <ContactoPageWithSearchParams />
+        </Suspense>
     );
 }

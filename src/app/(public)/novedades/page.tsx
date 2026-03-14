@@ -5,6 +5,8 @@ import { PageHeader } from '@/components/institucional/PageHeader';
 import { getAdminDb } from '@/firebase/admin';
 import type { Novedad } from '@/types/institucional';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: {
         absolute: 'Novedades | Agro Biciuffa SRL',

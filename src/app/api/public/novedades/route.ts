@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getAdminDb } from '@/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 type Novedad = {
     id: string;
     titulo?: string;
@@ -84,7 +86,7 @@ function buildBaseQuery(tag?: string): Query<DocumentData> {
 
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
+        const searchParams = request.nextUrl.searchParams;
         const limit = toPositiveInt(searchParams.get('limit'), 6);
         const offset = toPositiveInt(searchParams.get('offset'), 0);
         const tag = searchParams.get('tag')?.trim() || undefined;

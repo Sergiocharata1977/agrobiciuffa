@@ -53,7 +53,7 @@ function SidebarContent() {
             ),
         },
         {
-            href: '/repuestos',
+            href: '/mis-repuestos',
             label: 'Repuestos',
             icon: (
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

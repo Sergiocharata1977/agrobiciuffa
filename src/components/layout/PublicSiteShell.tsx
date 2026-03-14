@@ -13,7 +13,7 @@ const PRIVATE_EXACT_PATHS = new Set([
     '/register',
     '/dashboard',
     '/mis-equipos',
-    '/repuestos',
+    '/mis-repuestos',
     '/servicios',
     '/asistente',
     '/reclamos',
